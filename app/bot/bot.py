@@ -1,16 +1,14 @@
 import asyncio
 import logging
 
-import psycopg_pool
-import redis
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import ExceptionTypeFilter
-from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiogram.fsm.storage.redis import RedisStorage
 from fluentogram import TranslatorHub
 
 from app.bot.dialogs.flows import dialogs
@@ -21,12 +19,10 @@ from app.bot.middlewares.database import DataBaseMiddleware
 from app.bot.middlewares.get_user import GetUserMiddleware
 from app.bot.middlewares.i18n import TranslatorRunnerMiddleware
 from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
-from app.infrastructure.cache.connect_to_redis import get_redis_pool
+from app.infrastructure.storage.storage.redis_storage import redis_connection
+
 from app.infrastructure.database.connection.connect_to_pg import get_pg_pool
-from app.infrastructure.storage.nats_connect import connect_to_nats
-from app.infrastructure.storage.storage.nats_storage import NatsStorage
-from app.services.delay_service.start_consumer import start_delayed_consumer
-from app.services.scheduler.taskiq_broker import broker, redis_source
+
 from config.config import get_config
 
 logger = logging.getLogger(__name__)
@@ -34,29 +30,16 @@ logger = logging.getLogger(__name__)
 
 async def main():
     logger.info("Starting bot")
-    
+
     config = get_config()
 
-    nc, js = await connect_to_nats(servers=config.nats.servers)
-
-    storage: NatsStorage = await NatsStorage(
-        nc=nc, js=js, key_builder=DefaultKeyBuilder(with_destiny=True, separator=".")
-    ).create_storage()
+    storage = RedisStorage(redis=redis_connection)
 
     bot = Bot(
         token=config.bot.token,
         default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)),
     )
     dp = Dispatcher(storage=storage)
-    if config.cache.use_cache:
-        cache_pool: redis.asyncio.Redis = await get_redis_pool(
-            db=config.redis.database,
-            host=config.redis.host,
-            port=config.redis.port,
-            username=config.redis.username,
-            password=config.redis.password,
-        )
-        dp.workflow_data.update(_cache_pool=cache_pool)
 
     db_pool: psycopg_pool.AsyncConnectionPool = await get_pg_pool(
         db_name=config.postgres.name,
@@ -69,7 +52,6 @@ async def main():
     translator_hub: TranslatorHub = create_translator_hub()
 
     dp.workflow_data.update(
-        redis_source=redis_source,
         bot_locales=sorted(config.i18n.locales),
         translator_hub=translator_hub,
         db_pool=db_pool,
@@ -112,36 +94,18 @@ async def main():
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(ShadowBanMiddleware())
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(TranslatorRunnerMiddleware())
 
-    logger.info("Starting taskiq broker")
-    await broker.startup()
-
     # Launch polling and delayed message consumer
     try:
         await asyncio.gather(
             dp.start_polling(
                 bot,
-                js=js,
-                delay_del_subject=config.nats.delayed_consumer_subject,
                 bg_factory=bg_factory,
-            ),
-            start_delayed_consumer(
-                nc=nc,
-                js=js,
-                bot=bot,
-                subject=config.nats.delayed_consumer_subject,
-                stream=config.nats.delayed_consumer_stream,
-                durable_name=config.nats.delayed_consumer_durable_name,
             ),
         )
     except Exception as e:
         logger.exception(e)
     finally:
-        await nc.close()
-        logger.info("Connection to NATS closed")
         await db_pool.close()
         logger.info("Connection to Postgres closed")
-        await broker.shutdown()
-        logger.info("Connection to taskiq-broker closed")
-        if dp.workflow_data.get("_cache_pool"):
-            await cache_pool.close()
-            logger.info("Connection to Redis closed")
+        await redis_connection.close()
+        logger.info("Connection to Redis closed")

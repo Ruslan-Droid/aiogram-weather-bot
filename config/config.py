@@ -41,27 +41,12 @@ class RedisConfig(BaseModel):
     password: str | None = Field(None, description="Optional Redis password.")
 
 
-class NatsConfig(BaseModel):
-    servers: str | list[str] = Field(..., description="NATS servers.")
-    delayed_consumer_subject: str = Field(..., description="NATS subject for delayed consumer.")
-    delayed_consumer_stream: str = Field(..., description="NATS stream for delayed messages.")
-    delayed_consumer_durable_name: str = Field(
-        ..., description="Durable consumer name for delayed processing."
-    )
-
-
-class CacheConfig(BaseModel):
-    use_cache: bool = Field(..., description="Enable or disable in-memory cache usage.")
-
-
 class AppConfig(BaseModel):
     logs: LogsConfig
     i18n: I18nConfig
     bot: BotConfig
     postgres: PostgresConfig
     redis: RedisConfig
-    nats: NatsConfig
-    cache: CacheConfig
 
 
 # Инициализация Dynaconf
@@ -112,21 +97,10 @@ def get_config() -> AppConfig:
         password=_settings.redis_password,
     )
 
-    nats = NatsConfig(
-        servers=_settings.nats.servers,
-        delayed_consumer_subject=_settings.nats.delayed_consumer_subject,
-        delayed_consumer_stream=_settings.nats.delayed_consumer_stream,
-        delayed_consumer_durable_name=_settings.nats.delayed_consumer_durable_name,
-    )
-
-    cache = CacheConfig(use_cache=_settings.cache.use_cache)
-
     return AppConfig(
         logs=logs,
         i18n=i18n,
         bot=bot,
         postgres=postgres,
         redis=redis,
-        nats=nats,
-        cache=cache,
     )
