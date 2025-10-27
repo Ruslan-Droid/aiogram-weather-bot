@@ -1,5 +1,5 @@
 
-# Aiogram 3 Bot Template
+# Aiogram 3 Weather Bot
 
 This is a template for telegram bots written in python using the `aiogram` framework
 
