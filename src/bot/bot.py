@@ -11,17 +11,17 @@ from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from aiogram.fsm.storage.redis import RedisStorage
 from fluentogram import TranslatorHub
 
-from app.bot.dialogs.flows import dialogs
-from app.bot.handlers import routers
-from app.bot.handlers.errors import on_unknown_intent, on_unknown_state
-from app.bot.i18n.translator_hub import create_translator_hub
-from app.bot.middlewares.database import DataBaseMiddleware
-from app.bot.middlewares.get_user import GetUserMiddleware
-from app.bot.middlewares.i18n import TranslatorRunnerMiddleware
-from app.bot.middlewares.shadow_ban import ShadowBanMiddleware
-from app.infrastructure.storage.storage.redis_storage import redis_connection
+from src.bot.dialogs.flows import dialogs
+from src.bot.handlers import routers
+from src.bot.handlers.errors import on_unknown_intent, on_unknown_state
+from src.bot.i18n.translator_hub import create_translator_hub
+from src.bot.middlewares.database import DataBaseMiddleware
+from src.bot.middlewares.get_user import GetUserMiddleware
+from src.bot.middlewares.i18n import TranslatorRunnerMiddleware
+from src.bot.middlewares.shadow_ban import ShadowBanMiddleware
+from src.infrastructure.storage.storage.redis_storage import redis_connection
 
-from app.infrastructure.database.connection.connect_to_pg import get_pg_pool
+from src.infrastructure.database.connection.connect_to_pg import get_pg_pool
 
 from config.config import get_config
 

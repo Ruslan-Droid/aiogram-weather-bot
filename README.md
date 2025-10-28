@@ -186,11 +186,11 @@ python3 -m nats_broker.migrations.create_stream
 
 11. If you want to use the Taskiq broker for background tasks as well as the Taskiq scheduler, add your tasks to the `tasks.py` module and start the worker first:
 ```bash
-taskiq worker app.services.scheduler.taskiq_broker:broker -fsd
+taskiq worker src.services.scheduler.taskiq_broker:broker -fsd
 ```
 and then the scheduler:
 ```bash
-taskiq scheduler app.services.scheduler.taskiq_broker:scheduler
+taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 ```
 
 12. Run `main.py` to check the functionality of the template.

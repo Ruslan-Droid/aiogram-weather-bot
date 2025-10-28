@@ -5,7 +5,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 from fluentogram import TranslatorHub
 
-from app.infrastructure.database.models.user import UserModel
+from src.infrastructure.database.models.user import UserModel
 
 logger = logging.getLogger(__name__)
 

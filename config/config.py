@@ -31,6 +31,7 @@ class PostgresConfig(BaseModel):
     port: int = Field(..., description="PostgreSQL server port.")
     user: str = Field(..., description="PostgreSQL username.")
     password: str = Field(..., description="PostgreSQL user password.")
+    url: str = Field(..., description="PostgreSQL server URL.")
 
 
 class RedisConfig(BaseModel):
@@ -87,6 +88,8 @@ def get_config() -> AppConfig:
         port=_settings.postgres.port,
         user=_settings.postgres.user,
         password=_settings.postgres_password,
+        url=f"postgresql+asyncpg://{_settings.postgres.user}:{_settings.postgres_password}@{_settings.postgres.host}:"
+            f"{_settings.postgres.port}/{_settings.postgres.name}"
     )
 
     redis = RedisConfig(

@@ -7,9 +7,9 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button, ManagedRadio
 from fluentogram import TranslatorHub, TranslatorRunner
 
-from app.bot.keyboards.menu_button import get_main_menu_commands
-from app.infrastructure.database.db import DB
-from app.infrastructure.database.models.user import UserModel
+from src.bot.keyboards.menu_button import get_main_menu_commands
+from src.infrastructure.database.db import DB
+from src.infrastructure.database.models.user import UserModel
 
 logger = logging.getLogger(__name__)
 

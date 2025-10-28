@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from app.bot import main
+from src.bot import main
 from config.config import get_config
 
 config = get_config()

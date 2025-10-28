@@ -8,14 +8,14 @@ from aiogram.types import BotCommandScopeChat, Message
 from aiogram_dialog import DialogManager, StartMode
 from fluentogram import TranslatorRunner
 
-from app.bot.enums.roles import UserRole
-from app.bot.filters.dialog_filters import DialogStateFilter, DialogStateGroupFilter
-from app.bot.keyboards.links_kb import get_links_kb
-from app.bot.dialogs.flows.settings.states import SettingsSG
-from app.bot.dialogs.flows.start.states import StartSG
-from app.bot.keyboards.menu_button import get_main_menu_commands
-from app.infrastructure.database.db import DB
-from app.infrastructure.database.models.user import UserModel
+from src.bot.enums.roles import UserRole
+from src.bot.filters.dialog_filters import DialogStateFilter, DialogStateGroupFilter
+from src.bot.keyboards.links_kb import get_links_kb
+from src.bot.dialogs.flows.settings.states import SettingsSG
+from src.bot.dialogs.flows.start.states import StartSG
+from src.bot.keyboards.menu_button import get_main_menu_commands
+from src.infrastructure.database.db import DB
+from src.infrastructure.database.models.user import UserModel
 
 commands_router = Router()
 

@@ -4,8 +4,8 @@ from typing import Any, Awaitable, Callable
 from aiogram import BaseMiddleware
 from aiogram.types import Update, User
 
-from app.infrastructure.database.db import DB
-from app.infrastructure.database.models.user import UserModel
+from src.infrastructure.database.db import DB
+from src.infrastructure.database.models.user import UserModel
 
 logger = logging.getLogger(__name__)
 

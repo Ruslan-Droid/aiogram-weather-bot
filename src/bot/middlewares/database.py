@@ -5,8 +5,8 @@ from aiogram import BaseMiddleware
 from aiogram.types import Update
 from psycopg_pool import AsyncConnectionPool
 
-from app.infrastructure.database.db import DB
-from app.infrastructure.database.connection.psycopg_connection import PsycopgConnection
+from src.infrastructure.database.db import DB
+from src.infrastructure.database.connection.psycopg_connection import PsycopgConnection
 
 logger = logging.getLogger(__name__)
 
