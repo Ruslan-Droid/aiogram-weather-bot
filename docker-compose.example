@@ -14,7 +14,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -55,16 +55,16 @@ services:
   redis:
     image: redis:7.4-alpine
     container_name: redis
-    env_file: 
+    env_file:
       - .env
     volumes:
       - ./.redis_data:/data
     restart: unless-stopped
     ports:
       - "${REDIS_PORT}:6379"
-    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    command: [ "redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}" ]
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING" ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -75,56 +75,10 @@ services:
         max-size: "10m"
         max-file: "5"
         compress: "true"
-
-  nats:
-    image: nats:latest
-    container_name: nats
-    entrypoint: /nats-server
-    command: "-c /config/server.conf"
-    ports:
-      - "${NATS_PORT}:4222"
-      - "${NATS_MONITORING_PORT}:8222"
-    volumes:
-      - ./nats_broker/.nats_data:/data
-      - ./nats_broker/config/server.conf:/config/server.conf
-    healthcheck:
-      test: ["CMD", "nats-server", "-sl"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-        compress: "true"
     networks:
       - app_network
-  
-  nats-nui:
-    image: ghcr.io/nats-nui/nui:latest
-    container_name: nats-nui
-    env_file: 
-      - .env
-    ports:
-      - "${NUI_PORT}:31311"
-    environment:
-      NUI_USERNAME: ${NUI_USERNAME}
-      NUI_PASSWORD: ${NUI_PASSWORD}
-    volumes:
-      - ./.nui_data/db:/db
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "5"
-        compress: "true"
-    networks:
-      - app_network
-    depends_on:
-      nats:
-        condition: service_healthy
 
 networks:
   app_network:
+    driver: bridge
     name: app_network

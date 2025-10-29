@@ -21,7 +21,6 @@ class User(Base):
         nullable=True,
         default="ru"
     )
-    phone_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # Timezone region name (e.g., 'Europe/Moscow')
     tz_region: Mapped[str | None] = mapped_column(String(50), nullable=True)
     # Manual timezone offset in the format '+03:00' or '-05:00'

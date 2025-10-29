@@ -14,14 +14,3 @@ locales = ["ru", "en"]
 
 [development.bot]
 PARSE_MODE = 'HTML'
-
-[development.postgres]
-NAME = 'postgres'
-HOST = 'localhost'
-PORT = 5432
-USER = 'postgres'
-
-[development.redis]
-HOST = 'localhost'
-PORT = 6379
-DATABASE = 1

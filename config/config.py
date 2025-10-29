@@ -55,7 +55,7 @@ _settings = Dynaconf(
     envvar_prefix=False,  # "DYNACONF",
     environments=True,  # Автоматически использовать секцию текущей среды
     env_switcher="ENV_FOR_DYNACONF",
-    settings_files=["settings.toml", ".secrets.toml"],
+    settings_files=["settings.toml"],
     load_dotenv=True,
 )
 
@@ -83,19 +83,19 @@ def get_config() -> AppConfig:
     )
 
     postgres = PostgresConfig(
-        name=_settings.postgres.name,
-        host=_settings.postgres.host,
-        port=_settings.postgres.port,
-        user=_settings.postgres.user,
+        name=_settings.postgres_name,
+        host=_settings.postgres_host,
+        port=_settings.postgres_port,
+        user=_settings.postgres_user,
         password=_settings.postgres_password,
-        url=f"postgresql+asyncpg://{_settings.postgres.user}:{_settings.postgres_password}@{_settings.postgres.host}:"
-            f"{_settings.postgres.port}/{_settings.postgres.name}"
+        url=f"postgresql+asyncpg://{_settings.postgres_user}:{_settings.postgres_password}@{_settings.postgres_host}:"
+            f"{_settings.postgres_port}/{_settings.postgres_name}"
     )
 
     redis = RedisConfig(
-        host=_settings.redis.host,
-        port=_settings.redis.port,
-        database=_settings.redis.database,
+        host=_settings.redis_host,
+        port=_settings.redis_port,
+        database=_settings.redis_database,
         username=_settings.redis_username,
         password=_settings.redis_password,
     )

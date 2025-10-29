@@ -168,3 +168,6 @@ poetry.lock
 
 test_*.py
 /poetry.toml
+
+# Ignore dynaconf secret files
+config/.secrets.toml
