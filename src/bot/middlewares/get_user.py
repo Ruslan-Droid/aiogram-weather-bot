@@ -19,7 +19,7 @@ class GetUserMiddleware(BaseMiddleware):
             event: Update,
             data: dict[str, Any],
     ) -> Any:
-        user: UserModel = data.get("event_from_user")
+        user: User = data.get("event_from_user")
 
         if user is None:
             return await handler(event, data)
