@@ -1,3 +1,3 @@
-from .bot import main
-
-__all__ = ["main"]
+# from .bot import main
+#
+# __all__ = ["main"]

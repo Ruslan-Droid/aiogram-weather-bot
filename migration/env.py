@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from config.config import get_config
-from src.infrastructure.database.database import Base
-from src.infrastructure.database.models import User
+from src.infrastructure.database.db import Base
+from src.infrastructure.database.models import UserModel
 
 settings = get_config()
 
