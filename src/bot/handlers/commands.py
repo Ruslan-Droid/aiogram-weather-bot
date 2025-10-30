@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.bot.enums.roles import UserRole
 
 # from src.bot.dialogs.flows.settings.states import SettingsSG
-# from src.bot.dialogs.flows.start.states import StartSG
+from src.bot.dialogs.flows.start.states import StartSG
 from src.infrastructure.database.models import UserModel
 from src.infrastructure.database.dao import UserRepository
 
@@ -30,7 +30,7 @@ async def process_start_command(
 ) -> None:
     if user_row is None:
         user_rep = UserRepository(session)
-        user_row = await user_rep.create_new_user(
+        await user_rep.create_new_user(
             telegram_id=message.from_user.id,
             username=message.from_user.username,
             first_name=message.from_user.first_name,

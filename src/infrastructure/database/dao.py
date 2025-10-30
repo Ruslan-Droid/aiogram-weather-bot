@@ -47,7 +47,7 @@ class UserRepository:
         )
         try:
             self.session.add(new_user)
-            await self.session.flush()  # Чтобы получить ID, если он autoincrement
+            await self.session.commit()
             logger.info("Created new user with telegram id: %s", telegram_id)
             return new_user
 

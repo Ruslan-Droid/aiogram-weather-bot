@@ -1,9 +1,9 @@
 import logging
-from typing import Any
+from typing import Any, Dict
 from collections.abc import Awaitable, Callable
 
 from aiogram import BaseMiddleware
-from aiogram.types import Update, User
+from aiogram.types import TelegramObject, User
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models import UserModel
@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 class GetUserMiddleware(BaseMiddleware):
     async def __call__(
             self,
-            handler: Callable[[Update, dict[str, Any]], Awaitable[Any]],
-            event: Update,
-            data: dict[str, Any],
+            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+            event: TelegramObject,
+            data: Dict[str, Any],
     ) -> Any:
         user: User = data.get("event_from_user")
 
@@ -35,8 +35,10 @@ class GetUserMiddleware(BaseMiddleware):
             user_row: UserModel | None = await user_repo.get_user_by_telegram_id(user.id)
 
             data["user_row"] = user_row
-
-            logger.debug("User %s loaded successfully", user.id)
+            if user_row is None:
+                logger.debug("User not found in database.")
+            else:
+                logger.debug("User %s loaded successfully", user.id)
 
         except Exception as e:
             logger.exception("Error in GetUserMiddleware: %s", e)
