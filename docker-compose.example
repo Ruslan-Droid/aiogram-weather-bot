@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: postgres
+    container_name: postgres_container
     env_file:
       - .env
     environment:
@@ -29,7 +29,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin
+    container_name: pgadmin_container
     env_file:
       - .env
     environment:
@@ -54,7 +54,7 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: redis
+    container_name: redis_container
     env_file:
       - .env
     volumes:

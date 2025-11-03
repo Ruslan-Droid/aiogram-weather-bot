@@ -8,10 +8,8 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
-# from aiogram.filters import ExceptionTypeFilter
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
-# from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from fluentogram import TranslatorHub
 
 from src.bot.dialogs.flows import dialogs
@@ -55,26 +53,17 @@ async def main():
         default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)),
     )
     dp = Dispatcher(storage=storage)
+
     cache_pool: redis.asyncio.Redis = redis_client
-    dp.workflow_data.update(_cache_pool=cache_pool)
 
     translator_hub: TranslatorHub = create_translator_hub()
 
     dp.workflow_data.update(
         bot_locales=sorted(config.i18n.locales),
         translator_hub=translator_hub,
+        _cache_pool=cache_pool
     )
 
-    # logger.info("Registering error handlers")
-    # dp.errors.register(
-    #     on_unknown_intent,
-    #     ExceptionTypeFilter(UnknownIntent),
-    # )
-    # dp.errors.register(
-    #     on_unknown_state,
-    #     ExceptionTypeFilter(UnknownState),
-    # )
-    #
     logger.info("Including routers")
     dp.include_routers(*routers)
 
