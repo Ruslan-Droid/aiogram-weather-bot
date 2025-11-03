@@ -1,9 +1,13 @@
 import asyncio
 import logging
 
+import redis
+
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.fsm.storage.base import DefaultKeyBuilder
+from aiogram.fsm.storage.redis import RedisStorage
 # from aiogram.filters import ExceptionTypeFilter
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
@@ -19,6 +23,7 @@ from src.bot.middlewares.i18n import TranslatorRunnerMiddleware
 from src.bot.middlewares.shadow_ban import ShadowBanMiddleware
 
 from src.infrastructure.database.db import async_session_maker
+from src.infrastructure.cache import get_redis_pool
 
 from config.config import get_config
 
@@ -30,11 +35,28 @@ async def main():
 
     config = get_config()
 
+    redis_client = await get_redis_pool(
+        host=config.redis.host,
+        port=config.redis.port,
+        db=config.redis.database,
+        username=config.redis.username,
+        password=config.redis.password,
+    )
+
+    storage = RedisStorage(
+        redis=redis_client,
+        key_builder=DefaultKeyBuilder(
+            with_destiny=True,
+        ),
+    )
+
     bot = Bot(
         token=config.bot.token,
         default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)),
     )
-    dp = Dispatcher()
+    dp = Dispatcher(storage=storage)
+    cache_pool: redis.asyncio.Redis = redis_client
+    dp.workflow_data.update(_cache_pool=cache_pool)
 
     translator_hub: TranslatorHub = create_translator_hub()
 
@@ -90,7 +112,6 @@ async def main():
         )
     except Exception as e:
         logger.exception(e)
-    # finally:
-    #     if dp.workflow_data.get("_cache_pool"):
-    #         await cache_pool.close()
-    #         logger.info("Connection to Redis closed")
+    finally:
+        await cache_pool.close()
+        logger.info("Connection to Redis closed")

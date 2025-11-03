@@ -1,16 +1,16 @@
-
 # Aiogram 3 Weather Bot
 
 This is a template for telegram bots written in python using the `aiogram` framework
 
-
 You can learn how to develop telegram bots using the `aiogram` framework in the following courses (in Russian):
+
 1. <a href="https://stepik.org/course/120924/">Телеграм-боты на Python и AIOgram</a>
 2. <a href="https://stepik.org/a/153850?utm_source=kmsint_github">Телеграм-боты на Python: продвинутый уровень</a>
 
 ## About the template
 
 ### Used technology
+
 * Python 3.12;
 * aiogram 3.x (Asynchronous Telegram Bot framework);
 * aiogram_dialog (GUI framework for telegram bot);
@@ -145,50 +145,68 @@ You can learn how to develop telegram bots using the `aiogram` framework in the 
 ```bash
 git clone https://github.com/kmsint/aiogram_bot_template.git
 ```
+
 or via SSH:
+
 ```bash
 git clone git@github.com:kmsint/aiogram_bot_template.git
 ```
 
-2. Create a `docker-compose.yml` file in the root of the project and copy the code from the `docker-compose.example` file into it.
+2. Create a `docker-compose.yml` file in the root of the project and copy the code from the `docker-compose.example`
+   file into it.
 
-3. Create a `.env` file in the root of the project and copy the code from the `.env.example` file into it. Replace the required secrets (BOT_TOKEN, ADMINS_CHAT, etc).
+3. Create a `.env` file in the root of the project and copy the code from the `.env.example` file into it. Replace the
+   required secrets (BOT_TOKEN, ADMINS_CHAT, etc).
 
-4. Run `docker-compose.yml` with `docker compose up` command. You need docker and docker-compose installed on your local machine.
+4. Run `docker-compose.yml` with `docker compose up` command. You need docker and docker-compose installed on your local
+   machine.
 
 5. Create a virtual environment in the project root and activate it.
 
 6. Install the required libraries in the virtual environment. With `pip`:
+
 ```bash
 pip install .
 ```
+
 or if you use `poetry`:
+
 ```bash
 poetry install --no-root
 ```
-7. Write SQL code in the `upgrade` and `downgrade` functions to create a database schema. See example in file `alembic/versions/1541bb8a3f26_.py`.
+
+7. Write SQL code in the `upgrade` and `downgrade` functions to create a database schema. See example in file
+   `alembic/versions/1541bb8a3f26_.py`.
 
 8. If required, create additional empty migrations with the command:
+
 ```bash
 alembic revision
 ```
+
 and fill them with SQL code.
 
 9. Apply database migrations using the command:
+
 ```bash
 alembic upgrade head
 ```
 
 10. Run `create_stream.py` to create NATS stream for delayed messages service:
+
 ```bash
 python3 -m nats_broker.migrations.create_stream
 ```
 
-11. If you want to use the Taskiq broker for background tasks as well as the Taskiq scheduler, add your tasks to the `tasks.py` module and start the worker first:
+11. If you want to use the Taskiq broker for background tasks as well as the Taskiq scheduler, add your tasks to the
+    `tasks.py` module and start the worker first:
+
 ```bash
 taskiq worker src.services.scheduler.taskiq_broker:broker -fsd
 ```
+
 and then the scheduler:
+
 ```bash
 taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 ```
@@ -199,17 +217,23 @@ taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 
 ## Developer tools
 
-For convenient interaction with nats-server you need to install nats cli tool. For macOS you can do this through the homebrew package manager. Run the commands:
+For convenient interaction with nats-server you need to install nats cli tool. For macOS you can do this through the
+homebrew package manager. Run the commands:
+
 ```bash
 brew tap nats-io/nats-tools
 brew install nats-io/nats-tools/nats
 ```
+
 For linux:
+
 ```bash
 curl -sf https://binaries.nats.dev/nats-io/natscli/nats@latest | sh
 sudo mv nats /usr/local/bin/
 ```
+
 After this you can check the NATS version with the command:
+
 ```bash
 nats --version
 ```

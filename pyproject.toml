@@ -1,34 +1,18 @@
-[project]
-name = "aiogram-weather-bot"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.11"
-dependencies = [
-    "aiogram>=3.20.0.post0",
-    "aiogram-dialog>=2.3.1",
-    "alembic>=1.15.2",
-    "dynaconf>=3.2.10",
-    "fluentogram>=1.1.10",
-    "pydantic>=2.0.0",
-    "asyncpg (>=0.30.0,<0.31.0)",
-    "redis (>=7.0.1,<8.0.0)",
-]
-
-[dependency-groups]
-dev = [
-    "ruff>=0.11.12",
-]
-
 [tool.poetry]
 name = "aiogram-weather-bot"
 version = "0.1.0"
 description = ""
-authors = ["Inquisitor <ruslangrisha3@gmail.com>"]
+authors = ["ruslan-droid"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.13"
+python = "^3.13.5"
+aiogram = "^3.22.0"
+sqlalchemy = "^2.0.44"
+alembic = "^1.17.1"
+redis = "^7.0.1"
+aiogram-dialog = "^2.4.0"
+fluentogram = "^1.2.1"
 
 
 [build-system]

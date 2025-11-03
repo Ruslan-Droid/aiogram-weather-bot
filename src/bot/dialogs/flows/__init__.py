@@ -1,5 +1,5 @@
 # from .settings.dialogs import settings_dialog
-from .start.dialogs import start_dialog
+from .start_registration.dialogs import start_dialog
 
 __all__ = ["dialogs"]
 
