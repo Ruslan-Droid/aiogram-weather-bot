@@ -1,7 +1,9 @@
 start-hello = Hello, <b>{ $username }!</b>
 
     Send your coordinates to complete registration and receive weather forecasts.
-    To send your coordinates, click the paperclip and share the location. Or click the button below - Send coordinates!
+    To send your coordinates, click the paperclip and share the location.
+
+    Or click the button below - <b>Send coordinates</b>!
 
 start-finish-registration = Registration completed successfully. Your coordinates:
     latitude = { $latitude },
@@ -32,3 +34,5 @@ ru-lang = 🇷🇺 Russian
 en-lang = 🇬🇧 English
 
 lang-saved = ✅ The language settings have been saved successfully!
+
+weather-now-button = Weather now
