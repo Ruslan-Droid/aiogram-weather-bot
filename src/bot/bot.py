@@ -33,7 +33,7 @@ async def main():
 
     config = get_config()
 
-    redis_client = await get_redis_pool(
+    redis_client: redis.asyncio.Redis = await get_redis_pool(
         host=config.redis.host,
         port=config.redis.port,
         db=config.redis.database,

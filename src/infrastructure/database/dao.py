@@ -1,8 +1,7 @@
 import logging
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.util import await_only
 
 from src.bot.enums.roles import UserRole
 from src.infrastructure.database.models import UserModel
@@ -53,10 +52,11 @@ class UserRepository:
             return new_user
 
         except Exception as e:
+            await self.session.rollback()
             logger.error("Error creating user by telegram id: %s", telegram_id, e)
             raise
 
-    async def update_coordinates(
+    async def update_users_coordinates(
             self,
             telegram_id: int,
             latitude: float,
@@ -76,7 +76,7 @@ class UserRepository:
             logger.error("Error updating coordinates for telegram id: %s", telegram_id, e)
             raise
 
-    async def update_language(
+    async def update_users_language(
             self,
             telegram_id: int,
             language_code: str

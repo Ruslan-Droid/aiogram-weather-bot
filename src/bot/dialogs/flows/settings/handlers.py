@@ -40,7 +40,7 @@ async def update_user_lang(
     dialog_manager.middleware_data["i18n"] = i18n
 
     user_repo: UserRepository = UserRepository(session)
-    await user_repo.update_language(telegram_id=callback.from_user.id, language_code=checked_locale)
+    await user_repo.update_users_language(telegram_id=callback.from_user.id, language_code=checked_locale)
 
     user_row: UserModel = await user_repo.get_user_by_telegram_id(callback.from_user.id)
 

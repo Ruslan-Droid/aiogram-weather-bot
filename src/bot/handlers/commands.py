@@ -41,7 +41,7 @@ async def command_start_handler(
     await dialog_manager.reset_stack()
 
     await message.answer(
-        text=i18n.get("start-hello", username=user_row.username),
+        text=i18n.get("start-hello", username=user_row.first_name),
         reply_markup=request_coords_kb(i18n=i18n))
 
     await bot.set_my_commands(
@@ -62,7 +62,7 @@ async def location_handler(
         session: AsyncSession,
 ) -> None:
     user_rep = UserRepository(session)
-    await user_rep.update_coordinates(
+    await user_rep.update_users_coordinates(
         telegram_id=message.from_user.id,
         longitude=message.location.longitude,
         latitude=message.location.latitude

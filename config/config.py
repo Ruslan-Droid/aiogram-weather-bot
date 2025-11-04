@@ -25,6 +25,11 @@ class BotConfig(BaseModel):
     )
 
 
+class WeatherConfig(BaseModel):
+    token: str = Field(..., description="Weather API token.")
+    base_url: str = Field(..., description="Weather API base URL.")
+
+
 class PostgresConfig(BaseModel):
     name: str = Field(..., description="PostgreSQL database name.")
     host: str = Field(..., description="PostgreSQL server hostname.")
@@ -45,6 +50,7 @@ class RedisConfig(BaseModel):
 class AppConfig(BaseModel):
     logs: LogsConfig
     i18n: I18nConfig
+    weather: WeatherConfig
     bot: BotConfig
     postgres: PostgresConfig
     redis: RedisConfig
@@ -77,6 +83,11 @@ def get_config() -> AppConfig:
         locales=_settings.i18n.locales,
     )
 
+    weather = WeatherConfig(
+        token=_settings.weather_token,
+        base_url=_settings.weather_base_url,
+    )
+
     bot = BotConfig(
         token=_settings.bot_token,
         parse_mode=_settings.bot.parse_mode,
@@ -103,6 +114,7 @@ def get_config() -> AppConfig:
     return AppConfig(
         logs=logs,
         i18n=i18n,
+        weather=weather,
         bot=bot,
         postgres=postgres,
         redis=redis,
