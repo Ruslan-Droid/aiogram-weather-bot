@@ -1,6 +1,6 @@
 import logging
 
-from typing import Any, Dict, List
+from typing import Any
 from redis.asyncio import Redis
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ async def get_key(redis_pool: Redis, key: str) -> Any:
     try:
         value = await redis_pool.get(key)
         if value is None:
-            logger.error("Value is empty", key)
-            raise KeyError(f"Key {key} not found")
+            logger.error("Value is empty for key: %s", key)
+            raise
     except Exception as e:
         logger.error("Failed to get key %s", key)
         raise

@@ -37,5 +37,5 @@ class TranslatorRunnerMiddleware(BaseMiddleware):
 
         hub: TranslatorHub = data.get("translator_hub")
         data["i18n"] = hub.get_translator_by_locale(user_lang)
-
+        logger.debug("Successful loaded translator for user %s", user.id)
         return await handler(event, data)

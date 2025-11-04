@@ -1,5 +1,9 @@
+import logging
+
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from fluentogram import TranslatorRunner
+
+logger = logging.getLogger(__name__)
 
 
 def request_coords_kb(i18n: TranslatorRunner) -> ReplyKeyboardMarkup:

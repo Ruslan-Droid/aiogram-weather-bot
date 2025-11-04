@@ -19,9 +19,9 @@ class UserRepository:
             result = await self.session.execute(stmt)
             user = result.scalar_one_or_none()
             if user:
-                logger.debug("Fetched user by telegram id: %s", telegram_id)
+                logger.info("Fetched user by telegram id: %s", telegram_id)
             else:
-                logger.debug("User not found by telegram id: %s", telegram_id)
+                logger.info("User not found by telegram id: %s", telegram_id)
             return user
 
         except Exception as e:

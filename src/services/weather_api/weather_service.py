@@ -13,20 +13,22 @@ class WeatherService:
         self.api_key = api_key
         self.base_url = base_url
 
+    @staticmethod
+    def _check_location_is_city_or_coords(value: str | tuple[float, float]) -> str:
+        if type(value) is tuple:
+            return f"{value[0]},{value[1]}"
+        else:
+            return value
+
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1),
-           retry=retry_if_exception_type((aiohttp.ClientError, asyncio.TimeoutError)))
+           retry=retry_if_exception_type(asyncio.TimeoutError))
     async def get_current_weather(
             self,
-            city: str | None = None,
-            coords: tuple[float, float] | None = None,
+            location: str | tuple[float, float],
             language: str = "ru",
     ) -> Dict[str, Any]:
 
-        if city is None:
-            q = f"{coords[0]},{coords[1]}"
-        else:
-            q = city
-
+        q = self._check_location_is_city_or_coords(location)
         params = {
             "key": self.api_key,
             "q": q,
@@ -34,44 +36,22 @@ class WeatherService:
         }
         endpoint = "current.json"
         url = urljoin(self.base_url, endpoint)
-        async with aiohttp.ClientSession() as session:
+
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
             try:
                 async with session.get(url=url, params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        logger.info(f"Successful get current weather with: {q}")
-                        return data
-
-                    elif response.status == 400:
-                        error_text = await response.text()
-                        logger.error("Bad request for location '%s'. Status: %s, Response: %.200s",
-                                     q, response.status, error_text)
-                        raise ValueError(f"Bad request for {q}: {error_text}")
-
-                    elif response.status == 401:
-                        logger.error("Authentication failed for '%s'. Invalid API key", q)
-                        raise PermissionError("Invalid API key")
-
-                    elif response.status == 404:
-                        logger.warning("Place '%s' not found", q)
-                        raise ValueError(f"Place '{q}' not found")
-
-                    elif response.status == 500:
-                        logger.error("Internal server error for '%s'. Status: %s", q, response.status)
-                        raise Exception(f"Internal server error: {response.status}")
-
-                    else:
-                        logger.error("Unexpected API error for '%s'. Status: %s",
-                                     q, response.status)
-                        raise Exception(f"API error {response.status}")
-
+                    data = await response.json()
+                    logger.info("Successful get current weather with: %s", q)
+                    return data
+            except aiohttp.ClientResponseError as e:
+                logger.error("Failed to get current weather with location: %s, error: %s", q, e.status)
+                raise
             except aiohttp.ClientError as e:
-                logger.error(f"Network error for {q}: {e}")
-                raise Exception(f"Network error: {e}")
-
+                logger.error("Network error: %s", e)
+                raise
             except asyncio.TimeoutError:
-                logger.error(f"Timeout requesting weather for {q}")
-                raise Exception("Request timeout")
+                logger.error("Timeout requesting weather for location: %s", q)
+                raise
 
 
 if __name__ == '__main__':
@@ -79,4 +59,4 @@ if __name__ == '__main__':
 
     config = get_config()
     test_weather = WeatherService(config.weather.token, config.weather.base_url)
-    print(asyncio.run(test_weather.get_current_weather(coords=(54.71, 20.5))))
+    print(asyncio.run(test_weather.get_current_weather(location="Kaliningrad")))
