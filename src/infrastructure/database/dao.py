@@ -3,8 +3,7 @@ import logging
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.bot.enums.roles import UserRole
-from src.infrastructure.database.models import UserModel
+from src.infrastructure.database.models import UserModel, UserRole
 
 logger = logging.getLogger(__name__)
 

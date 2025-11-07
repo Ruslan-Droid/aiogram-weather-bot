@@ -21,7 +21,7 @@ class WeatherService:
             return value
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1),
-           retry=retry_if_exception_type(asyncio.TimeoutError))
+           retry=retry_if_exception_type(aiohttp.ClientConnectionError))
     async def get_current_weather(
             self,
             location: str | tuple[float, float],
@@ -43,8 +43,43 @@ class WeatherService:
                     data = await response.json()
                     logger.info("Successful get current weather with: %s", q)
                     return data
-            except aiohttp.ClientResponseError as e:
-                logger.error("Failed to get current weather with location: %s, error: %s", q, e.status)
+            except aiohttp.ClientConnectionError as e:
+                logger.error("Connection error: %s", e)
+                raise
+            except aiohttp.ClientError as e:
+                logger.error("Network error: %s", e)
+                raise
+            except asyncio.TimeoutError:
+                logger.error("Timeout requesting weather for location: %s", q)
+                raise
+
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1),
+           retry=retry_if_exception_type(aiohttp.ClientConnectionError))
+    async def get_current_weather_forcast(
+            self,
+            location: str | tuple[float, float],
+            language: str = "ru",
+    ) -> Dict[str, Any]:
+
+        q = self._check_location_is_city_or_coords(location)
+        params = {
+            "key": self.api_key,
+            "q": q,
+            "days": 1,
+            "lang": language,
+        }
+
+        endpoint = "forecast.json"
+        url = urljoin(self.base_url, endpoint)
+
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            try:
+                async with session.get(url=url, params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                    data = await response.json()
+                    logger.info("Successful get current weather with: %s", q)
+                    return data
+            except aiohttp.ClientConnectionError as e:
+                logger.error("Connection error: %s", e)
                 raise
             except aiohttp.ClientError as e:
                 logger.error("Network error: %s", e)

@@ -1,17 +1,20 @@
-start-hello = Hello, <b>{ $username }!</b>
+start-hello =   Hello, <b>{ $username }!</b>
 
-    Send your coordinates to complete registration and receive weather forecasts.
-    To send your coordinates, click the paperclip and share the location.
+                Send your coordinates to complete registration and receive weather forecasts.
 
-    Or click the button below - <b>Send coordinates</b>!
+                To send your coordinates, click the paperclip and share the location.
 
-start-finish-registration = Registration completed successfully. Your coordinates:
-    latitude = { $latitude },
-    longitude = { $longitude}.
+                Or click the button below - <b>Send coordinates</b>!
+
+start-finish-registration =     Registration completed successfully.
+
+                                Your coordinates:
+                                latitude = { $latitude },
+                                longitude = { $longitude}.
 
 keyboard-coords = Send coords
 
-wrong-location = You need to send a location! Send your location by clicking the paperclip or the "Send coordinates" button.
+error-input-registration = Send coordinates by clicking the button below or send them via the location using a paperclip.
 
 start-command-description = Restart the bot
 
@@ -35,4 +38,8 @@ en-lang = 🇬🇧 English
 
 lang-saved = ✅ The language settings have been saved successfully!
 
-weather-now-button = Weather now
+weather-now-button = 🌡️ ⛅️ Weather now
+
+main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
+
+                        To get the weather forecast, click the button below:

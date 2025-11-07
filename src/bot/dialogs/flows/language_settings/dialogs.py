@@ -2,13 +2,13 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Radio, Row, ScrollingGroup
 from aiogram_dialog.widgets.text import Format
 
-from src.bot.dialogs.flows.settings.getters import get_set_lang
-from src.bot.dialogs.flows.settings.handlers import (
+from src.bot.dialogs.flows.language_settings.getters import get_set_lang
+from src.bot.dialogs.flows.language_settings.handlers import (
     cancel_set_lang,
     set_radio_lang_default,
     update_user_lang,
 )
-from src.bot.dialogs.flows.settings.states import SettingsSG
+from src.bot.dialogs.flows.language_settings.states import SettingsSG
 
 settings_dialog = Dialog(
     Window(

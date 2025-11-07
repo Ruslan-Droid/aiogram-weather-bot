@@ -23,6 +23,8 @@ from src.bot.middlewares.shadow_ban import ShadowBanMiddleware
 from src.infrastructure.database.db import async_session_maker
 from src.infrastructure.cache import get_redis_pool
 
+from src.services.weather_api.weather_service import WeatherService
+
 from config.config import get_config
 
 logger = logging.getLogger(__name__)
@@ -58,10 +60,16 @@ async def main():
 
     translator_hub: TranslatorHub = create_translator_hub()
 
+    weather_service: WeatherService = WeatherService(
+        api_key=config.weather.token,
+        base_url=config.weather.base_url,
+    )
+
     dp.workflow_data.update(
         bot_locales=sorted(config.i18n.locales),
         translator_hub=translator_hub,
-        _cache_pool=cache_pool
+        _cache_pool=cache_pool,
+        weather_service=weather_service,
     )
 
     logger.info("Including routers")

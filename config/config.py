@@ -71,7 +71,7 @@ def get_config() -> AppConfig:
         Returns a typed application configuration.
 
         Returns:
-            AppConfig: A validated Pydantic model containing the application settings.
+            AppConfig: A validated Pydantic model containing the application language_settings.
     """
     logs = LogsConfig(
         level_name=_settings.logs.level_name,
