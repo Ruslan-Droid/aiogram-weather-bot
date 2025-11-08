@@ -4,6 +4,9 @@ import aiohttp
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from typing import Dict, Any
+from fluentogram import TranslatorRunner
+
+from src.services.weather_api.weather_parsing import parse_weather
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +27,10 @@ class WeatherService:
            retry=retry_if_exception_type(aiohttp.ClientConnectionError))
     async def get_current_weather(
             self,
+            i18n: TranslatorRunner,
             location: str | tuple[float, float],
             language: str = "ru",
-    ) -> Dict[str, Any]:
+    ) -> str:
 
         q = self._check_location_is_city_or_coords(location)
         params = {
@@ -42,7 +46,8 @@ class WeatherService:
                 async with session.get(url=url, params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     data = await response.json()
                     logger.info("Successful get current weather with: %s", q)
-                    return data
+                    return parse_weather(weather_data=data, i18n=i18n)
+
             except aiohttp.ClientConnectionError as e:
                 logger.error("Connection error: %s", e)
                 raise
@@ -57,9 +62,10 @@ class WeatherService:
            retry=retry_if_exception_type(aiohttp.ClientConnectionError))
     async def get_current_weather_forcast(
             self,
+            i18n: TranslatorRunner,
             location: str | tuple[float, float],
             language: str = "ru",
-    ) -> Dict[str, Any]:
+    ) -> str:
 
         q = self._check_location_is_city_or_coords(location)
         params = {
@@ -77,7 +83,8 @@ class WeatherService:
                 async with session.get(url=url, params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
                     data = await response.json()
                     logger.info("Successful get current weather with: %s", q)
-                    return data
+                    return parse_weather(weather_data=data, i18n=i18n)
+
             except aiohttp.ClientConnectionError as e:
                 logger.error("Connection error: %s", e)
                 raise
@@ -87,11 +94,3 @@ class WeatherService:
             except asyncio.TimeoutError:
                 logger.error("Timeout requesting weather for location: %s", q)
                 raise
-
-
-if __name__ == '__main__':
-    from config.config import get_config
-
-    config = get_config()
-    test_weather = WeatherService(config.weather.token, config.weather.base_url)
-    print(asyncio.run(test_weather.get_current_weather(location="Kaliningrad")))

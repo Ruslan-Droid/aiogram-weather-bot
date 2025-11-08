@@ -13,7 +13,7 @@ class RedisService:
     async def set_key(self, key: str, value: Any) -> None:
         try:
             await self.redis_pool.set(key, value)
-            logger.info("Set key %s to %s", key, value)
+            logger.debug("Set key %s", key)
         except Exception as e:
             logger.error("Failed to set key %s to %s", key, e)
             raise
@@ -21,7 +21,7 @@ class RedisService:
     async def set_key_with_ttl(self, key: str, ttl: int, value: Any, ) -> None:
         try:
             await self.redis_pool.setex(key, ttl, value)
-            logger.info("Set key %s to %s and ttl %s", key, value, ttl)
+            logger.debug("Set key %s and ttl %s", key, ttl)
         except Exception as e:
             logger.error("Failed to set key %s to %s", key, e)
             raise
@@ -30,8 +30,10 @@ class RedisService:
         try:
             value = await self.redis_pool.get(key)
             if value is None:
-                logger.error("Value is empty for key: %s", key)
-                raise
+                logger.debug("Value is empty for key: %s", key)
+                return None
+            logger.debug("Get value for key %s successful", key)
+            return value
         except Exception as e:
             logger.error("Failed to get key %s", key)
             raise
@@ -39,7 +41,7 @@ class RedisService:
     async def delete_key(self, key: str) -> None:
         try:
             await self.redis_pool.delete(key)
-            logger.info("Successful deleted key %s", key)
+            logger.debug("Successful deleted key %s", key)
         except Exception as e:
             logger.error("Failed to delete key %s", key)
             raise
