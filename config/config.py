@@ -47,13 +47,23 @@ class RedisConfig(BaseModel):
     password: str | None = Field(None, description="Optional Redis password.")
 
 
+class NatsConfig(BaseModel):
+    servers: str | list[str] = Field(..., description="NATS servers.")
+    delayed_consumer_subject: str = Field(..., description="NATS subject for delayed consumer.")
+    delayed_consumer_stream: str = Field(..., description="NATS stream for delayed messages.")
+    delayed_consumer_durable_name: str = Field(
+        ..., description="Durable consumer name for delayed processing."
+    )
+
+
 class AppConfig(BaseModel):
     logs: LogsConfig
     i18n: I18nConfig
-    weather: WeatherConfig
     bot: BotConfig
+    weather: WeatherConfig
     postgres: PostgresConfig
     redis: RedisConfig
+    nats: NatsConfig
 
 
 # Инициализация Dynaconf
@@ -111,6 +121,13 @@ def get_config() -> AppConfig:
         password=_settings.redis_password,
     )
 
+    nats = NatsConfig(
+        servers=_settings.nats.server,
+        delayed_consumer_subject=_settings.nats.delayed_consumer_subject,
+        delayed_consumer_stream=_settings.nats.delayed_consumer_stream,
+        delayed_consumer_durable_name=_settings.nats.delayed_consumer_durable_name,
+    )
+
     return AppConfig(
         logs=logs,
         i18n=i18n,
@@ -118,4 +135,5 @@ def get_config() -> AppConfig:
         bot=bot,
         postgres=postgres,
         redis=redis,
+        nats=nats,
     )
