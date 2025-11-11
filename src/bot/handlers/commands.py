@@ -1,18 +1,18 @@
 from aiogram import Bot, Router
 from aiogram.enums import BotCommandScopeType
 from aiogram.filters import CommandStart, Command
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, BotCommandScopeChat
+
 from aiogram_dialog import DialogManager, StartMode
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
+from src.bot.dialogs.flows.registration.states import StartRegistrationSG
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.infrastructure.database.models import UserModel
 from src.infrastructure.database.dao import UserRepository
 from src.bot.keyboards.menu_button import get_main_menu_commands
-from src.bot.dialogs.flows.registration.states import StartRegistrationSG
 
 commands_router = Router()
 
@@ -22,7 +22,6 @@ async def command_start_handler(
         message: Message,
         dialog_manager: DialogManager,
         bot: Bot,
-        state: FSMContext,
         i18n: TranslatorRunner,
         session: AsyncSession,
         user_row: UserModel | None,
@@ -62,6 +61,5 @@ async def command_help_handler(
 async def process_lang_command_sg(
         message: Message,
         dialog_manager: DialogManager,
-        i18n: TranslatorRunner
 ) -> None:
     await dialog_manager.start(state=SettingsSG.lang)

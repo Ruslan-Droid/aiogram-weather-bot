@@ -6,14 +6,18 @@ import redis
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
+from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from fluentogram import TranslatorHub
 
 from src.bot.dialogs.flows import dialogs
 from src.bot.handlers import routers
+from src.bot.handlers.errors import on_unknown_intent, on_unknown_state
 from src.bot.i18n.translator_hub import create_translator_hub
 from src.bot.middlewares.database import DbSessionMiddleware
 from src.bot.middlewares.get_user import GetUserMiddleware
@@ -24,6 +28,9 @@ from src.infrastructure.database.db import async_session_maker
 from src.infrastructure.cache import get_redis_pool
 
 from src.services.weather_api.weather_service import WeatherService
+from src.services.delay_service.start_consumer import start_delayed_consumer
+
+from nats_broker.nats_connect import connect_to_nats
 
 from config.config import get_config
 
@@ -34,6 +41,8 @@ async def main():
     logger.info("Starting bot")
 
     config = get_config()
+
+    nc, js = await connect_to_nats(servers=config.nats.servers)
 
     redis_client: redis.asyncio.Redis = await get_redis_pool(
         host=config.redis.host,
@@ -71,6 +80,15 @@ async def main():
         _cache_pool=cache_pool,
         weather_service=weather_service,
     )
+    logger.info("Registering error handlers")
+    dp.errors.register(
+        on_unknown_intent,
+        ExceptionTypeFilter(UnknownIntent),
+    )
+    dp.errors.register(
+        on_unknown_state,
+        ExceptionTypeFilter(UnknownState),
+    )
 
     logger.info("Including routers")
     dp.include_routers(*routers)
@@ -104,11 +122,23 @@ async def main():
         await asyncio.gather(
             dp.start_polling(
                 bot,
+                js=js,
+                delay_del_subject=config.nats.delayed_consumer_subject,
                 bg_factory=bg_factory,
-            )
+            ),
+            start_delayed_consumer(
+                nc=nc,
+                js=js,
+                bot=bot,
+                subject=config.nats.delayed_consumer_subject,
+                stream=config.nats.delayed_consumer_stream,
+                durable_name=config.nats.delayed_consumer_durable_name,
+            ),
         )
     except Exception as e:
         logger.exception(e)
     finally:
+        await nc.close()
+        logger.info("Connection to NATS closed")
         await cache_pool.close()
         logger.info("Connection to Redis closed")

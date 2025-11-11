@@ -122,7 +122,7 @@ def get_config() -> AppConfig:
     )
 
     nats = NatsConfig(
-        servers=_settings.nats.server,
+        servers=_settings.nats.servers,
         delayed_consumer_subject=_settings.nats.delayed_consumer_subject,
         delayed_consumer_stream=_settings.nats.delayed_consumer_stream,
         delayed_consumer_durable_name=_settings.nats.delayed_consumer_durable_name,

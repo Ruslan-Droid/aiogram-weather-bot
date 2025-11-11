@@ -2,10 +2,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import BigInteger, String, Float
 from src.infrastructure.database.db import Base
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
-import enum
+from enum import Enum
 
 
-class UserRole(enum.Enum):
+class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
     OWNER = "owner"

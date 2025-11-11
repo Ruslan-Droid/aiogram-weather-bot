@@ -171,3 +171,4 @@ test_*.py
 
 # Ignore dynaconf secret files
 config/.secrets.toml
+/test.py

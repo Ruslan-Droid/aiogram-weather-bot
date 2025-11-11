@@ -10,10 +10,13 @@ python = "^3.13.5"
 aiogram = "^3.22.0"
 sqlalchemy = "^2.0.44"
 alembic = "^1.17.1"
-redis = "^7.0.1"
+redis = "6.2"
 aiogram-dialog = "^2.4.0"
 fluentogram = "^1.2.1"
 tenacity = "^9.1.2"
+taskiq = "^0.11.20"
+taskiq-nats = "^0.5.1"
+taskiq-redis = "^1.1.2"
 
 
 [build-system]

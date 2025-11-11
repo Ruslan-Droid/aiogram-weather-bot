@@ -21,7 +21,6 @@ def parse_weather(weather_data: Dict[str, Any], i18n: TranslatorRunner) -> str:
         feels_like_c = current['feelslike_c']
         condition = current['condition']['text']
         emoji = get_weather_emoji(current['condition']['code'])
-        humidity = current['humidity']
         wind_kph = current['wind_kph']
 
         # Only for forecast weather
