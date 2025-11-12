@@ -22,7 +22,6 @@ help-command-description = View the help for the bot
 
 help-commad = Example.
 
-
 back-button = ◀️ Back
 save-button = ✅ Save
 set-lang-menu = <b>Please select the language of the bot interface</b>
@@ -33,18 +32,19 @@ ru-lang = 🇷🇺 Russian
 en-lang = 🇬🇧 English
 lang-saved = ✅ The language settings have been saved successfully!
 
-
 weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
-language_settings_button = 🌎 Change language
+language-settings-button = 🌎 Change language
+off-notification-button = 🟢 Weather alerts are enabled.
+on-notification-button = 🔴 Weather alerts are disabled.
+
 
 main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
 
                         To get the weather forecast, click the button below:
 
 general-settings-weather-dialog = General WeatherBot⛅️ settings:
-
 
 parsing-weather-time = Time
 parsing-weather-temperature = Temperature

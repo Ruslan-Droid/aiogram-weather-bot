@@ -35,7 +35,9 @@ lang-saved = ✅ Настройки языка успешно сохранены
 weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
-language_settings_button = 🌎 Настроить язык
+language-settings-button = 🌎 Настроить язык
+off-notification-button = 🟢  Рассылка погоды включена
+on-notification-button = 🔴  Рассылка погоды отключена
 
 main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
 

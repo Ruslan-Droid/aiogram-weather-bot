@@ -10,6 +10,8 @@ async def getter_weather_main_menu(
         "weather_now": i18n.get("weather-now-button"),
         "weather_forecast": i18n.get("weather-forecast-button"),
         "main_settings": i18n.get("main-settings-button"),
+        "off_notification": i18n.get("off-notification-button"),
+        "on_notification": i18n.get("on-notification-button"),
     }
 
 
@@ -19,6 +21,6 @@ async def getter_weather_settings(
         **kwargs):
     return {
         "back_button" : i18n.get("back-button"),
-        "language_settings_button": i18n.get("language_settings_button"),
+        "language_settings_button": i18n.get("language-settings-button"),
 
     }

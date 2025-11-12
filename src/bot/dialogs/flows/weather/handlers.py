@@ -1,6 +1,6 @@
 import logging
 
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Checkbox, ManagedCheckbox
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
@@ -119,3 +119,10 @@ async def change_language_on_click(
         widget: Button,
         dialog_manager: DialogManager) -> None:
     await dialog_manager.start(state=SettingsSG.lang)
+
+
+async def weather_notification_clicked(
+        callback: CallbackQuery,
+        checkbox: ManagedCheckbox,
+        dialog_manager: DialogManager) -> None:
+    print("Что то произошло)")

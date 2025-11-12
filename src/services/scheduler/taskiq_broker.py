@@ -3,7 +3,7 @@ import logging
 from taskiq import TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_nats import NatsBroker
-from taskiq_redis import RedisAsyncResultBackend, RedisScheduleSource
+from taskiq_redis import RedisScheduleSource
 
 from config.config import get_config
 
@@ -11,12 +11,9 @@ config = get_config()
 
 redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
 
-broker = NatsBroker(servers=config.nats.servers, queue="taskiq_tasks").with_result_backend(
-    RedisAsyncResultBackend(redis_url=redis_url))
+broker = NatsBroker(servers=config.nats.servers, queue="taskiq_tasks")
 
-redis_source = RedisScheduleSource(
-    url=redis_url
-)
+redis_source = RedisScheduleSource(url=redis_url)
 
 scheduler = TaskiqScheduler(broker, [redis_source, LabelScheduleSource(broker)])
 
