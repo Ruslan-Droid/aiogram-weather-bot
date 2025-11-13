@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.models import UserModel, UserRole
+from src.infrastructure.database.models import UserModel, UserRole, UserScheduleTask
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,8 @@ class UserRepository:
             first_name=first_name,
             last_name=last_name,
             language_code=language_code,
-            role=role
+            role=role,
+            user_schedule_task=UserScheduleTask()
         )
         try:
             self.session.add(new_user)

@@ -29,6 +29,7 @@ from src.infrastructure.cache import get_redis_pool
 
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.start_consumer import start_delayed_consumer
+from src.services.scheduler.taskiq_broker import broker, redis_source
 
 from nats_broker.nats_connect import connect_to_nats
 
@@ -65,6 +66,23 @@ async def main():
     )
     dp = Dispatcher(storage=storage)
 
+    @dp.startup()
+    async def setup_taskiq(bot: Bot, *_args, **_kwargs):
+        if not broker.is_worker_process:
+            try:
+                logging.info("Setting up taskiq")
+                await broker.startup()
+                logging.info("Taskiq started successfully")
+            except Exception as e:
+                logging.error(f"Failed to start taskiq: {e}")
+                raise  # Перебрасываем исключение, чтобы бот не стартовал
+
+    @dp.shutdown()
+    async def shutdown_taskiq(bot: Bot, *_args, **_kwargs):
+        if not broker.is_worker_process:
+            logging.info("Shutting down taskiq")
+            await broker.shutdown()
+
     cache_pool: redis.asyncio.Redis = redis_client
 
     translator_hub: TranslatorHub = create_translator_hub()
@@ -79,6 +97,7 @@ async def main():
         translator_hub=translator_hub,
         _cache_pool=cache_pool,
         weather_service=weather_service,
+        redis_source=redis_source,
     )
     logger.info("Registering error handlers")
     dp.errors.register(

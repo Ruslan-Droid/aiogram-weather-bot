@@ -4,18 +4,25 @@ from taskiq import TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
 from taskiq_nats import NatsBroker
 from taskiq_redis import RedisScheduleSource
+import taskiq_aiogram
 
 from config.config import get_config
 
 config = get_config()
 
-redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
+redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.database}"
 
 broker = NatsBroker(servers=config.nats.servers, queue="taskiq_tasks")
 
 redis_source = RedisScheduleSource(url=redis_url)
 
 scheduler = TaskiqScheduler(broker, [redis_source, LabelScheduleSource(broker)])
+
+taskiq_aiogram.init(
+    broker,
+    "src.bot.bot:dp",
+    "src.bot.bot:bot",
+)
 
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)

@@ -1,3 +1,4 @@
+from taskiq import TaskiqDepends
 from aiogram import Bot
 from aiogram.types import Message
 
@@ -13,13 +14,13 @@ async def send_scheduled_weather_forecast(
         weather_service: WeatherService,
         location: str | tuple[float, float],
         language: str,
-        bot: Bot,
-        message: Message,
+        chat_id: int,
+        bot: Bot = TaskiqDepends(),
 ) -> None:
     weather_forecast = await weather_service.get_current_weather_forcast(i18n=i18n,
                                                                          location=location,
                                                                          language=language)
     await bot.send_message(
-        chat_id=message.chat.id,
+        chat_id=chat.id,
         text=weather_forecast,
     )
