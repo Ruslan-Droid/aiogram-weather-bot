@@ -2,9 +2,8 @@ import logging
 
 from taskiq import TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_nats import NatsBroker
-from taskiq_redis import RedisScheduleSource
-import taskiq_aiogram
+from taskiq_nats import PushBasedJetStreamBroker, NatsBroker
+from taskiq_redis import RedisScheduleSource, RedisAsyncResultBackend
 
 from config.config import get_config
 
@@ -18,11 +17,12 @@ redis_source = RedisScheduleSource(url=redis_url)
 
 scheduler = TaskiqScheduler(broker, [redis_source, LabelScheduleSource(broker)])
 
-taskiq_aiogram.init(
-    broker,
-    "src.bot.bot:dp",
-    "src.bot.bot:bot",
-)
+
+# taskiq_aiogram.init(
+#     broker=broker,
+#     dispatcher="src.bot.bot:dp",
+#     bot="src.bot.bot:bot"
+# )
 
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)

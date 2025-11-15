@@ -11,7 +11,7 @@ from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.publisher import delay_message_deletion
-from src.services.scheduler.tasks import send_scheduled_weather_forecast
+# from src.services.scheduler.tasks import send_scheduled_weather_forecast
 
 from src.infrastructure.database.models import UserModel
 
@@ -148,6 +148,9 @@ async def weather_notification_clicked(
         logger.debug("Schedule task for user %s successful added in taskiq", user.telegram_id)
         # добавить id задачи в БД
         user.user_schedule_task.taskiq_task_id = task.schedule_id
+
+    elif user.user_schedule_task.notifications_enabled and user.user_schedule_task.taskiq_task_id:
+        pass
 
     else:
         if user.user_schedule_task.taskiq_task_id:
