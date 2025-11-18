@@ -3,7 +3,6 @@ import logging
 import aiohttp
 from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
-from typing import Dict, Any
 from fluentogram import TranslatorRunner
 
 from src.services.weather_api.weather_parsing import parse_weather

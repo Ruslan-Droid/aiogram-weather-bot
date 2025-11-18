@@ -37,11 +37,14 @@ from config.config import get_config
 
 logger = logging.getLogger(__name__)
 
+config = get_config()
+
+bot = Bot(token=config.bot.token,
+          default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)))
+
 
 async def main():
     logger.info("Starting bot")
-
-    config = get_config()
 
     nc, js = await connect_to_nats(servers=config.nats.servers)
 
@@ -60,10 +63,6 @@ async def main():
         ),
     )
 
-    bot = Bot(
-        token=config.bot.token,
-        default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)),
-    )
     dp = Dispatcher(storage=storage)
 
     cache_pool: redis.asyncio.Redis = redis_client
@@ -121,7 +120,7 @@ async def main():
 
     if not broker.is_worker_process:
         logger.info("Starting taskiq broker")
-        await broker.startup()
+    await broker.startup()
 
     # Launch polling and delayed message consumer
     try:

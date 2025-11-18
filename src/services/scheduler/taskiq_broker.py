@@ -42,6 +42,13 @@ redis_source = RedisScheduleSource(
 scheduler = TaskiqScheduler(broker, [redis_source, LabelScheduleSource(broker)])
 
 
+taskiq_aiogram.init(
+    broker=broker,
+    dispatcher="src.bot.bot:dp",
+    bot="src.bot.bot:bot",
+)
+
+
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup(state: TaskiqState) -> None:
     logging.basicConfig(level=config.logs.level_name, format=config.logs.format)
