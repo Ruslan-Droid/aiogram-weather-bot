@@ -66,23 +66,6 @@ async def main():
     )
     dp = Dispatcher(storage=storage)
 
-    # @dp.startup()
-    # async def setup_taskiq(bot: Bot, *_args, **_kwargs):
-    #     if not broker.is_worker_process:
-    #         try:
-    #             logging.info("Setting up taskiq")
-    #             await broker.startup()
-    #             logging.info("Taskiq started successfully")
-    #         except Exception as e:
-    #             logging.error(f"Failed to start taskiq: {e}")
-    #             raise  # Перебрасываем исключение, чтобы бот не стартовал
-    #
-    # @dp.shutdown()
-    # async def shutdown_taskiq(bot: Bot, *_args, **_kwargs):
-    #     if not broker.is_worker_process:
-    #         logging.info("Shutting down taskiq")
-    #         await broker.shutdown()
-
     cache_pool: redis.asyncio.Redis = redis_client
 
     translator_hub: TranslatorHub = create_translator_hub()
@@ -136,8 +119,9 @@ async def main():
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(ShadowBanMiddleware())
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(TranslatorRunnerMiddleware())
 
-    logger.info("Starting taskiq broker")
-    await broker.startup()
+    if not broker.is_worker_process:
+        logger.info("Starting taskiq broker")
+        await broker.startup()
 
     # Launch polling and delayed message consumer
     try:
@@ -164,5 +148,6 @@ async def main():
         logger.info("Connection to NATS closed")
         await cache_pool.close()
         logger.info("Connection to Redis closed")
-        await broker.shutdown()
-        logger.info("Connection to taskiq-broker closed")
+        if not broker.is_worker_process:
+            logger.info("Connection to taskiq-broker closed")
+            await broker.shutdown()

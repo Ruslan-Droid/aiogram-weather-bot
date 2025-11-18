@@ -14,7 +14,6 @@ from src.infrastructure.database.models import UserModel
 from src.infrastructure.database.dao import UserRepository
 from src.bot.keyboards.menu_button import get_main_menu_commands
 
-from src.services.scheduler.tasks import test, test_with_arguments
 from taskiq_redis import RedisScheduleSource
 
 commands_router = Router()
@@ -66,20 +65,3 @@ async def process_lang_command_sg(
         dialog_manager: DialogManager,
 ) -> None:
     await dialog_manager.start(state=SettingsSG.lang)
-
-
-@commands_router.message(Command("test"))
-async def test_command_handler(
-        message: Message,
-) -> None:
-    await test.kiq()
-    await message.answer(text="Простая задача отправлена")
-
-
-@commands_router.message(Command("test2"))
-async def test2_command_handler(
-        message: Message,
-) -> None:
-    await test_with_arguments.kiq(10)
-    await message.answer(text="Простая задача отправлена с аргументом")
-

@@ -2,27 +2,44 @@ import logging
 
 from taskiq import TaskiqEvents, TaskiqScheduler, TaskiqState
 from taskiq.schedule_sources import LabelScheduleSource
-from taskiq_nats import PushBasedJetStreamBroker, NatsBroker
+
+import taskiq_aiogram
+from taskiq_nats import PushBasedJetStreamBroker
 from taskiq_redis import RedisScheduleSource, RedisAsyncResultBackend
+
+from nats.js.api import ConsumerConfig, StreamConfig, StorageType, RetentionPolicy
 
 from config.config import get_config
 
 config = get_config()
 
-redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.database}"
+stream_config = StreamConfig(
+    retention=RetentionPolicy.LIMITS,
+    storage=StorageType.FILE,
+    num_replicas=1,
+)
 
-broker = NatsBroker(servers=config.nats.servers, queue="taskiq_tasks")
+consumer_config = ConsumerConfig(
+    name="taskiq_consumer",
+    durable_name="taskiq_consumer",
+    max_ack_pending=30,
+)
 
-redis_source = RedisScheduleSource(url=redis_url)
+result_backend = RedisAsyncResultBackend(redis_url=config.redis.redis_url)
+
+broker = PushBasedJetStreamBroker(
+    servers=config.nats.servers,
+    queue="taskiq_consumer",
+    consumer_config=consumer_config,
+    stream_config=stream_config,
+).with_result_backend(
+    result_backend=result_backend)
+
+redis_source = RedisScheduleSource(
+    url=config.redis.redis_url,
+)
 
 scheduler = TaskiqScheduler(broker, [redis_source, LabelScheduleSource(broker)])
-
-
-# taskiq_aiogram.init(
-#     broker=broker,
-#     dispatcher="src.bot.bot:dp",
-#     bot="src.bot.bot:bot"
-# )
 
 
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)

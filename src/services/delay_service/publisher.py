@@ -17,7 +17,7 @@ async def delay_message_deletion(
     await js.publish(subject=subject, headers=headers)
 
 
-async def delay_message_senging(
+async def delay_message_sending(
     js: JetStreamContext, chat_id: int, text: str, subject: str, delay: int = 0
 ) -> None:
     headers = {

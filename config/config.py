@@ -45,6 +45,7 @@ class RedisConfig(BaseModel):
     database: int = Field(default=0, description="Redis database index.")
     username: str | None = Field(None, description="Optional Redis username.")
     password: str | None = Field(None, description="Optional Redis password.")
+    redis_url: str | None = Field(None, description="Redis server URL.")
 
 
 class NatsConfig(BaseModel):
@@ -119,6 +120,7 @@ def get_config() -> AppConfig:
         database=_settings.redis_database,
         username=_settings.redis_username,
         password=_settings.redis_password,
+        redis_url=f"redis://{_settings.redis_username}:{_settings.redis_password}@{_settings.redis_host}:{_settings.redis_port}/{_settings.redis_database}"
     )
 
     nats = NatsConfig(
