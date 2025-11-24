@@ -33,7 +33,7 @@ class UserRepository:
             username: str | None,
             first_name: str | None,
             last_name: str | None,
-            language_code: str | None = "ru",
+            language_code: str | None = "en",
             role: UserRole = UserRole.USER,
     ) -> UserModel:
         new_user = UserModel(
@@ -94,3 +94,56 @@ class UserRepository:
             await self.session.rollback()
             logger.error("Error updating coordinates for telegram id: %s", telegram_id, e)
             raise
+
+    async def get_user_notification_settings(
+            self,
+            telegram_id: int,
+    ) -> UserScheduleTask | None:
+        try:
+            stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+            result = await self.session.execute(stmt)
+            notification_settings = result.scalar_one_or_none()
+            if notification_settings:
+                logger.info("Fetched notification settings by telegram id: %s", telegram_id)
+            else:
+                logger.info("Notification settings not found by telegram id: %s", telegram_id)
+            return notification_settings
+
+        except Exception as e:
+            logger.error("Error getting notification settings by telegram id %s: %s", telegram_id, e)
+            raise
+
+    async def enable_notification_settings_and_add_task_id(
+            self,
+            telegram_id: int,
+            task_id: str
+    ) -> None:
+        stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+        result = await self.session.execute(stmt)
+        user_notification_settings = result.scalar_one_or_none()
+
+        if user_notification_settings:
+            user_notification_settings.notifications_enabled = True
+            user_notification_settings.taskiq_task_id = task_id
+            logger.debug("User notification enabled")
+        else:
+            logger.warning("User notification settings not found by telegram id: %s", telegram_id)
+
+        await self.session.commit()
+
+    async def disable_notification_settings_and_remove_task_id(
+            self,
+            telegram_id: int,
+    ) -> None:
+        stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+        result = await self.session.execute(stmt)
+        user_notification_settings = result.scalar_one_or_none()
+
+        if user_notification_settings:
+            user_notification_settings.notifications_enabled = False
+            user_notification_settings.taskiq_task_id = None
+            logger.debug("User notification disabled")
+        else:
+            logger.warning("User notification settings not found by telegram id: %s", telegram_id)
+
+        await self.session.commit()

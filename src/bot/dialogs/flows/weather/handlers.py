@@ -1,25 +1,26 @@
 import logging
 
-from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox
 from aiogram.types import CallbackQuery, Message
+from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
-from nats.aio import msg
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
+from src.infrastructure.database.dao import UserRepository
+
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.publisher import delay_message_deletion
-# from src.services.scheduler.tasks import send_scheduled_weather_forecast
+from src.services.scheduler.tasks import send_daily_weather
 
-from src.infrastructure.database.models import UserModel
+from src.infrastructure.database.models import UserModel, UserScheduleTask
 
-from fluentogram import TranslatorRunner
+from fluentogram import TranslatorRunner, TranslatorHub
 from taskiq import ScheduledTask
 from taskiq_redis import RedisScheduleSource
 from redis.asyncio import Redis
 from nats.js.client import JetStreamContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -128,30 +129,41 @@ async def weather_notification_clicked(
         callback: CallbackQuery,
         checkbox: ManagedCheckbox,
         dialog_manager: DialogManager) -> None:
-    weather: WeatherService = dialog_manager.middleware_data.get("weather_service")
-    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
     user: UserModel = dialog_manager.middleware_data.get("user_row")
     redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+    user_repo: UserRepository = UserRepository(session)
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
 
-    # Поменять статус задачи на вкл/выкл
-    user.user_schedule_task.notifications_enabled = not user.user_schedule_task.notifications_enabled
+    user_notification_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
+        telegram_id=user.telegram_id)
 
-    if user.user_schedule_task.notifications_enabled and user.user_schedule_task.taskiq_task_id is None:
-        task: ScheduledTask = await send_scheduled_weather_forecast.schedule_by_cron(
+    if not user_notification_settings.notifications_enabled:
+
+        location = (user.latitude, user.longitude) if user.city is None else user.city
+
+        task: ScheduledTask = await send_daily_weather.schedule_by_cron(
             source=redis_source,
-            cron=f"{user.user_schedule_task.notification_time.split(":")[0]} {user.user_schedule_task.notification_time.split(":")[1]} * * *",
-            i18n=i18n,
-            weather_service=weather,
-            location=(user.latitude, user.longitude) if user.city is None else user.city,
+            # cron=f"{user.user_schedule_task.notification_time.split(":")[0]} {user.user_schedule_task.notification_time.split(":")[1]} * * *",
+            cron="*/1 * * * *",
+            location=location,
+            language=user.language_code,
             chat_id=callback.message.chat.id,
         )
+        task_id = task.schedule_id
         logger.debug("Schedule task for user %s successful added in taskiq", user.telegram_id)
-        # добавить id задачи в БД
-        user.user_schedule_task.taskiq_task_id = task.schedule_id
-
-    elif user.user_schedule_task.notifications_enabled and user.user_schedule_task.taskiq_task_id:
-        pass
+        await user_repo.enable_notification_settings_and_add_task_id(
+            telegram_id=user.telegram_id,
+            task_id=task_id,
+        )
+        await callback.answer(
+            text=i18n.get("notification-time-alert",
+                          time=user_notification_settings.notification_time),
+            show_alert=True
+        )
 
     else:
-        if user.user_schedule_task.taskiq_task_id:
-            await redis_source.delete_schedule(user.user_schedule_task.taskiq_task_id)
+        await callback.answer(text=i18n.get("on-notification-button"))
+        await redis_source.delete_schedule(user.user_schedule_task.taskiq_task_id)
+        await user_repo.disable_notification_settings_and_remove_task_id(
+            telegram_id=user.telegram_id)

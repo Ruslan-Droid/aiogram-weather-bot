@@ -10,7 +10,7 @@ start-finish-registration =     Registration completed successfully.
 
                                 Your coordinates:
                                 latitude = { $latitude },
-                                longitude = { $longitude}.
+                                longitude = { $longitude }.
 
 keyboard-coords = Send coords
 
@@ -39,6 +39,11 @@ language-settings-button = 🌎 Change language
 off-notification-button = 🟢 Weather alerts are enabled.
 on-notification-button = 🔴 Weather alerts are disabled.
 
+notification-time-alert =   Daily notification time:
+
+                            { $time }
+
+                            The time can be changed in general bot settings.
 
 main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
 

@@ -10,7 +10,7 @@ start-finish-registration =     Регистрация успешно завер
 
                                 Твои координаты:
                                 широта = { $latitude },
-                                долгота = { $longitude}.
+                                долгота = { $longitude }.
 
 keyboard-coords = Отправить координаты
 
@@ -38,6 +38,12 @@ main-settings-button = ⚙️ Общие настройки бота
 language-settings-button = 🌎 Настроить язык
 off-notification-button = 🟢  Рассылка погоды включена
 on-notification-button = 🔴  Рассылка погоды отключена
+
+notification-time-alert =   Время ежедневной рассылки:
+
+                            { $time }
+
+                            Время можно изменить в общих настройках бота.
 
 main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
 

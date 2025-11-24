@@ -18,7 +18,6 @@ redis = "6.4"
 taskiq = "^0.11.20"
 taskiq-nats = "^0.5.1"
 taskiq-redis = "^1.1.2"
-taskiq-aiogram = "^0.3.1"
 
 
 

@@ -14,11 +14,11 @@ from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from fluentogram import TranslatorHub
+from taskiq import TaskiqEvents, TaskiqState
 
 from src.bot.dialogs.flows import dialogs
 from src.bot.handlers import routers
 from src.bot.handlers.errors import on_unknown_intent, on_unknown_state
-from src.bot.i18n.translator_hub import create_translator_hub
 from src.bot.middlewares.database import DbSessionMiddleware
 from src.bot.middlewares.get_user import GetUserMiddleware
 from src.bot.middlewares.i18n import TranslatorRunnerMiddleware
@@ -30,6 +30,7 @@ from src.infrastructure.cache import get_redis_pool
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.start_consumer import start_delayed_consumer
 from src.services.scheduler.taskiq_broker import broker, redis_source
+from src.services.i18n.translator_hub import TranslatorHubFactory
 
 from nats_broker.nats_connect import connect_to_nats
 
@@ -37,14 +38,11 @@ from config.config import get_config
 
 logger = logging.getLogger(__name__)
 
-config = get_config()
-
-bot = Bot(token=config.bot.token,
-          default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)))
-
 
 async def main():
     logger.info("Starting bot")
+
+    config = get_config()
 
     nc, js = await connect_to_nats(servers=config.nats.servers)
 
@@ -55,6 +53,9 @@ async def main():
         username=config.redis.username,
         password=config.redis.password,
     )
+
+    bot = Bot(token=config.bot.token,
+              default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)))
 
     storage = RedisStorage(
         redis=redis_client,
@@ -67,7 +68,7 @@ async def main():
 
     cache_pool: redis.asyncio.Redis = redis_client
 
-    translator_hub: TranslatorHub = create_translator_hub()
+    translator_hub: TranslatorHub = TranslatorHubFactory(config=config).create()
 
     weather_service: WeatherService = WeatherService(
         api_key=config.weather.token,
@@ -120,7 +121,11 @@ async def main():
 
     if not broker.is_worker_process:
         logger.info("Starting taskiq broker")
-    await broker.startup()
+        await broker.startup()
+
+    @broker.on_event(TaskiqEvents.CLIENT_STARTUP)
+    async def startup(state: TaskiqState) -> None:
+        state.example = "example"
 
     # Launch polling and delayed message consumer
     try:

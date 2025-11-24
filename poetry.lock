@@ -1404,22 +1404,6 @@ uv = ["uvloop (>=0.16.0,<1) ; sys_platform != \"win32\""]
 zmq = ["pyzmq (>=26,<27)"]
 
 [[package]]
-name = "taskiq-aiogram"
-version = "0.3.1"
-description = "Taskiq integration with Aiogram"
-optional = false
-python-versions = ">=3.8.1,<4.0.0"
-groups = ["main"]
-files = [
-    {file = "taskiq_aiogram-0.3.1-py3-none-any.whl", hash = "sha256:6332f5cd6db219c8f9e7cee8db5ba2dc96757e12aaddb443394128a9c3264ba6"},
-    {file = "taskiq_aiogram-0.3.1.tar.gz", hash = "sha256:0175ac768d7f315318b637eece2ddb24f35a1768990616021c344ca3383186dc"},
-]
-
-[package.dependencies]
-aiogram = ">=3,<4"
-taskiq = ">=0,<1"
-
-[[package]]
 name = "taskiq-dependencies"
 version = "1.5.7"
 description = "FastAPI like dependency injection implementation"
@@ -1674,4 +1658,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13.5"
-content-hash = "eadd98e88e5f08bc20c49b3bed2882fd60a7678f3561b1e16419e82e0a2b4122"
+content-hash = "227e4286fb9227661596670e74ce36bf11287b5a35fadca9510007bcac873e6e"

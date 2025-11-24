@@ -6,6 +6,7 @@ from aiogram.types import Message, BotCommandScopeChat
 from aiogram_dialog import DialogManager, StartMode
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
+from taskiq_redis import RedisScheduleSource
 
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 from src.bot.dialogs.flows.registration.states import StartRegistrationSG
@@ -13,8 +14,6 @@ from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.infrastructure.database.models import UserModel
 from src.infrastructure.database.dao import UserRepository
 from src.bot.keyboards.menu_button import get_main_menu_commands
-
-from taskiq_redis import RedisScheduleSource
 
 commands_router = Router()
 
@@ -27,6 +26,7 @@ async def command_start_handler(
         i18n: TranslatorRunner,
         session: AsyncSession,
         user_row: UserModel | None,
+        redis_source: RedisScheduleSource,
 ) -> None:
     if user_row is None:
         user_rep: UserRepository = UserRepository(session)
@@ -45,10 +45,11 @@ async def command_start_handler(
         ),
     )
 
-    if user_row.latitude is None or user_row.longitude is None or user_row.city is None:
+    if (user_row.latitude is None or user_row.longitude is None) and user_row.city is None:
         await dialog_manager.start(state=StartRegistrationSG.start_registration, mode=StartMode.RESET_STACK)
     else:
         await dialog_manager.start(state=WeatherSG.weather_main_menu, mode=StartMode.RESET_STACK)
+        await  redis_source.delete_schedule(user_row.user_schedule_task.taskiq_task_id)
 
 
 @commands_router.message(Command("help"))

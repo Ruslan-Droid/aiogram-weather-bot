@@ -47,7 +47,8 @@ class UserModel(Base):
 
     def __repr__(self):
         return (f"<User(id={self.id}, telegram_id={self.telegram_id}, username='{self.username}', "
-                f"lang='{self.language_code}', coords='{self.latitude}, {self.longitude}'>')>")
+                f"lang='{self.language_code}', coords='{self.latitude}, {self.longitude}'>')>"
+                f"city={self.city}>")
 
 
 class UserScheduleTask(Base):
