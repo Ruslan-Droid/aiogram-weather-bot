@@ -22,5 +22,5 @@ async def getter_weather_settings(
     return {
         "back_button" : i18n.get("back-button"),
         "language_settings_button": i18n.get("language-settings-button"),
-
+        "coords_settings_button": i18n.get("coords-settings-button"),
     }

@@ -31,7 +31,7 @@ async def location_handler(
         latitude=message.location.latitude,
         longitude=message.location.longitude))
 
-    await dialog_manager.start(WeatherSG.weather_main_menu)
+    await dialog_manager.start(WeatherSG.weather_general_settings)
 
 
 async def wrong_location_handler(message: Message,

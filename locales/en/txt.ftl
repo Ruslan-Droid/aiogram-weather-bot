@@ -6,9 +6,8 @@ start-hello =   Hello, <b>{ $username }!</b>
 
                 Or click the button below - <b>Send coordinates</b>!
 
-start-finish-registration =     Registration completed successfully.
+start-finish-registration =     Coordinates successfully set:
 
-                                Your coordinates:
                                 latitude = { $latitude },
                                 longitude = { $longitude }.
 
@@ -36,6 +35,7 @@ weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
 language-settings-button = 🌎 Change language
+coords-settings-button = 🗺 Change coords
 off-notification-button = 🟢 Weather alerts are enabled.
 on-notification-button = 🔴 Weather alerts are disabled.
 

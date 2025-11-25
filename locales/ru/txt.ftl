@@ -6,9 +6,8 @@ start-hello =   Привет, <b>{ $username }!</b>
 
                 Либо нажми на кнопку ниже - <b>Отправить координаты</b>!
 
-start-finish-registration =     Регистрация успешно завершина.
+start-finish-registration =     Координаты успешно установлены:
 
-                                Твои координаты:
                                 широта = { $latitude },
                                 долгота = { $longitude }.
 
@@ -36,6 +35,7 @@ weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
 language-settings-button = 🌎 Настроить язык
+coords-settings-button = 🗺 Изменить координаты
 off-notification-button = 🟢  Рассылка погоды включена
 on-notification-button = 🔴  Рассылка погоды отключена
 

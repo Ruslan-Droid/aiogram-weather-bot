@@ -7,15 +7,16 @@ from aiogram_dialog.api.entities.modes import ShowMode
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
+from src.bot.dialogs.flows.registration.states import StartRegistrationSG
+
 from src.infrastructure.database.dao import UserRepository
+from src.infrastructure.database.models import UserModel, UserScheduleTask
 
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.publisher import delay_message_deletion
 from src.services.scheduler.tasks import send_daily_weather
 
-from src.infrastructure.database.models import UserModel, UserScheduleTask
-
-from fluentogram import TranslatorRunner, TranslatorHub
+from fluentogram import TranslatorRunner
 from taskiq import ScheduledTask
 from taskiq_redis import RedisScheduleSource
 from redis.asyncio import Redis
@@ -123,6 +124,13 @@ async def change_language_on_click(
         widget: Button,
         dialog_manager: DialogManager) -> None:
     await dialog_manager.start(state=SettingsSG.lang)
+
+
+async def change_coords_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    await dialog_manager.start(state=WeatherSG.weather_changing_coords)
 
 
 async def weather_notification_clicked(
