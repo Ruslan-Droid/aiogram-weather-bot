@@ -95,6 +95,44 @@ class UserRepository:
             logger.error("Error updating coordinates for telegram id: %s", telegram_id, e)
             raise
 
+    async def update_user_city(
+            self,
+            telegram_id: int,
+            city: str
+    ) -> None:
+        try:
+            stmt = (
+                update(UserModel)
+                .where(UserModel.telegram_id == telegram_id)
+                .values(city=city)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated city for telegram id: %s", telegram_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating city for telegram id: %s", telegram_id, e)
+            raise
+
+    async def update_activity_status(
+            self,
+            telegram_id: int,
+            status: bool
+    ) -> None:
+        try:
+            stmt = (
+                update(UserModel)
+                .where(UserModel.telegram_id == telegram_id)
+                .values(is_active=status)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated is_active status for telegram id: %s", telegram_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating is_active status for telegram id: %s", telegram_id, e)
+            raise
+
     async def get_user_notification_settings(
             self,
             telegram_id: int,
@@ -147,3 +185,22 @@ class UserRepository:
             logger.warning("User notification settings not found by telegram id: %s", telegram_id)
 
         await self.session.commit()
+
+    async def update_daly_notification_time(
+            self,
+            telegram_id: int,
+            notification_time: str,
+    ) -> None:
+        try:
+            stmt = (
+                update(UserScheduleTask)
+                .where(UserScheduleTask.telegram_id == telegram_id)
+                .values(notification_time=notification_time)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated notification time for telegram id: %s", telegram_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating notification time for telegram id: %s", telegram_id, e)
+            raise

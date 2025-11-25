@@ -15,6 +15,7 @@ from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from fluentogram import TranslatorHub
 from taskiq import TaskiqEvents, TaskiqState
+from nats_broker.nats_connect import connect_to_nats
 
 from src.bot.dialogs.flows import dialogs
 from src.bot.handlers import routers
@@ -31,8 +32,6 @@ from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.start_consumer import start_delayed_consumer
 from src.services.scheduler.taskiq_broker import broker, redis_source
 from src.services.i18n.translator_hub import TranslatorHubFactory
-
-from nats_broker.nats_connect import connect_to_nats
 
 from config.config import get_config
 
