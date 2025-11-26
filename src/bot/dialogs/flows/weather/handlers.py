@@ -1,13 +1,13 @@
 import logging
 
 from aiogram.types import CallbackQuery, Message
+from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
-from src.bot.dialogs.flows.registration.states import StartRegistrationSG
 
 from src.infrastructure.database.dao import UserRepository
 from src.infrastructure.database.models import UserModel, UserScheduleTask
@@ -56,7 +56,7 @@ async def send_today_weather_on_click(
             time=60 * 60)  # Cache for 1 hour
 
     # send in broker message to delet after delay
-    msg: Message = await callback.message.answer(text=current_weather)
+    msg: Message = await callback.message.answer(text=current_weather, message_effect_id="5159385139981059251")
     await delay_message_deletion(
         js=js,
         chat_id=msg.chat.id,
@@ -94,7 +94,7 @@ async def send_today_forecast_on_click(
             value=today_forecast,
             time=60 * 60)  # Cache for 1 hour
 
-    msg: Message = await callback.message.answer(text=today_forecast)
+    msg: Message = await callback.message.answer(text=today_forecast, message_effect_id="5159385139981059251")
     await delay_message_deletion(
         js=js,
         chat_id=msg.chat.id,
@@ -105,7 +105,7 @@ async def send_today_forecast_on_click(
     dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
 
 
-async def send_general_settings_on_click(
+async def go_to_general_settings_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
@@ -126,11 +126,59 @@ async def change_language_on_click(
     await dialog_manager.start(state=SettingsSG.lang)
 
 
+async def change_notification_time_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    await dialog_manager.switch_to(state=WeatherSG.weather_changing_time)
+
+
+async def time_handler(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager) -> None:
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    user: UserModel = dialog_manager.middleware_data.get("user_row")
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+
+    dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
+    time = message.text
+    if len(time) == 5 and time[2] == ":":
+        hours, minutes = map(int, time.split(":"))
+        if 0 <= hours <= 23 and 0 <= minutes <= 59:
+            user_repo: UserRepository = UserRepository(session)
+            await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
+            await message.answer(text=i18n.get("time-changed-successfully", time=time),
+                                 message_effect_id="5046509860389126442")
+            await dialog_manager.start(state=WeatherSG.weather_main_menu)
+    else:
+        await message.delete()
+
+
+async def wrong_time_handler(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager) -> None:
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+
+    dialog_manager.show_mode = ShowMode.NO_UPDATE
+    await message.delete()
+    await message.answer(text=i18n.get("error-input-time"))
+
+
 async def change_coords_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
     await dialog_manager.start(state=WeatherSG.weather_changing_coords)
+
+
+async def back_button_handler(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager) -> None:
+    await message.delete()
+    await dialog_manager.start(state=WeatherSG.weather_general_settings)
 
 
 async def weather_notification_clicked(

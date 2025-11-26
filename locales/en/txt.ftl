@@ -10,10 +10,22 @@ start-finish-registration =     Coordinates successfully set:
 
                                 latitude = { $latitude },
                                 longitude = { $longitude }.
+start-change-time-notification =    Send in the chat the time at which you want to receive the daily weather forecast in the format "XX:XX".
+
+                                    Example:
+
+                                    09:00
+
+time-changed-successfully =     Time changed successfully:
+
+                                <b>{ $time }</b> ✅
 
 keyboard-coords = Send coords
 
 error-input-registration = Send coordinates by clicking the button below or send them via the location using a paperclip.
+error-input-time =  Send time to chat in the format:
+
+                    09:00
 
 start-command-description = Restart the bot
 lang-command-description = Configure the interface language
@@ -35,6 +47,7 @@ weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
 language-settings-button = 🌎 Change language
+settings-change-time-notification-button = ⏰ Change notification time
 coords-settings-button = 🗺 Change coords
 off-notification-button = 🟢 Weather alerts are enabled.
 on-notification-button = 🔴 Weather alerts are disabled.

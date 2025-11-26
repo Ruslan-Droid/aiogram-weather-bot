@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 from aiogram_dialog import DialogManager
 from fluentogram import TranslatorRunner
 
@@ -20,7 +22,17 @@ async def getter_weather_settings(
         i18n: TranslatorRunner,
         **kwargs):
     return {
-        "back_button" : i18n.get("back-button"),
+        "back_button": i18n.get("back-button"),
         "language_settings_button": i18n.get("language-settings-button"),
         "coords_settings_button": i18n.get("coords-settings-button"),
+        "settings_change_time_notification_button": i18n.get("settings-change-time-notification-button"),
+    }
+
+
+async def getter_weather_time_settings(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs):
+    return {
+        "back_button": i18n.get("back-button"),
     }

@@ -10,10 +10,22 @@ start-finish-registration =     Координаты успешно устано
 
                                 широта = { $latitude },
                                 долгота = { $longitude }.
+start-change-time-notification =    Отправьте в чат время в которое вы хотите получать ежедневный прогноз погоды в формате "XX:XX".
+
+                                    Пример:
+
+                                    09:00
+
+time-changed-successfully =     Время изменено успешно:
+
+                                <b>{ $time }</b> ✅
 
 keyboard-coords = Отправить координаты
 
 error-input-registration = Отправьте координаты нажав на кнопку внизу или отправьте через локацию через скрепку.
+error-input-time =  Отправьте время в чат в формате:
+
+                    09:00
 
 start-command-description = Перезапустить бота
 lang-command-description = Настроить язык интерфейса
@@ -35,6 +47,7 @@ weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
 language-settings-button = 🌎 Настроить язык
+settings-change-time-notification-button = ⏰ Изменить время уведомлений
 coords-settings-button = 🗺 Изменить координаты
 off-notification-button = 🟢  Рассылка погоды включена
 on-notification-button = 🔴  Рассылка погоды отключена

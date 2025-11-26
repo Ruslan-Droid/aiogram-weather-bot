@@ -29,7 +29,8 @@ async def location_handler(
     await message.answer(text=i18n.get(
         "start-finish-registration",
         latitude=message.location.latitude,
-        longitude=message.location.longitude))
+        longitude=message.location.longitude),
+        message_effect_id="5046509860389126442", )
 
     await dialog_manager.start(WeatherSG.weather_general_settings)
 
