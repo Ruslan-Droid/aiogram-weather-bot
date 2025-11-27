@@ -33,7 +33,7 @@ result_backend = RedisAsyncResultBackend(
     redis_url=config.redis.redis_url,
     prefix_str="taskiq_result_backend",
     result_ex_time=60
-    )
+)
 
 broker = PushBasedJetStreamBroker(
     servers=config.nats.servers,

@@ -186,6 +186,25 @@ class UserRepository:
 
         await self.session.commit()
 
+    async def update_taskiq_task_id(
+            self,
+            telegram_id: int,
+            taskiq_task_id: str,
+    ) -> None:
+        try:
+            stmt = (
+                update(UserScheduleTask)
+                .where(UserScheduleTask.telegram_id == telegram_id)
+                .values(taskiq_task_id=taskiq_task_id)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated taskiq_task_id  for telegram id: %s", telegram_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating taskiq_task_id  for telegram id: %s", telegram_id, e)
+            raise
+
     async def update_daly_notification_time(
             self,
             telegram_id: int,

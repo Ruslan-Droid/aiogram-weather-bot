@@ -14,7 +14,7 @@ from src.infrastructure.database.models import UserModel, UserScheduleTask
 
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.publisher import delay_message_deletion
-from src.services.scheduler.tasks import send_daily_weather
+from src.services.scheduler.tasks import send_daily_weather, update_send_daily_weather_task
 
 from fluentogram import TranslatorRunner
 from taskiq import ScheduledTask
@@ -140,17 +140,38 @@ async def time_handler(
     session: AsyncSession = dialog_manager.middleware_data.get("session")
     user: UserModel = dialog_manager.middleware_data.get("user_row")
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
 
     dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
+
     time = message.text
+
     if len(time) == 5 and time[2] == ":":
         hours, minutes = map(int, time.split(":"))
         if 0 <= hours <= 23 and 0 <= minutes <= 59:
             user_repo: UserRepository = UserRepository(session)
             await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
+
+            task_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
+                telegram_id=user.telegram_id)
+
+            # update task with new time if notification enabled
+            if task_settings.notifications_enabled:
+                location = (user.latitude, user.longitude) if user.city is None else user.city
+
+                await update_send_daily_weather_task(
+                    source=redis_source,
+                    time=time,
+                    location=location,
+                    language=user.language_code,
+                    chat_id=user.telegram_id,
+                    taskiq_task_id=task_settings.taskiq_task_id,
+                    user_repo=user_repo,
+                )
+
             await message.answer(text=i18n.get("time-changed-successfully", time=time),
                                  message_effect_id="5046509860389126442")
-            await dialog_manager.start(state=WeatherSG.weather_main_menu)
+            await dialog_manager.switch_to(state=WeatherSG.weather_main_menu)
     else:
         await message.delete()
 
@@ -170,7 +191,7 @@ async def change_coords_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
-    await dialog_manager.start(state=WeatherSG.weather_changing_coords)
+    await dialog_manager.switch_to(state=WeatherSG.weather_changing_coords)
 
 
 async def back_button_handler(
@@ -178,7 +199,7 @@ async def back_button_handler(
         widget: MessageInput,
         dialog_manager: DialogManager) -> None:
     await message.delete()
-    await dialog_manager.start(state=WeatherSG.weather_general_settings)
+    await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
 
 
 async def weather_notification_clicked(
@@ -219,7 +240,8 @@ async def weather_notification_clicked(
         )
 
     else:
-        await callback.answer(text=i18n.get("on-notification-button"))
+        await callback.answer(text=i18n.get("on-notification-button"),
+                              show_alert=True)
         await redis_source.delete_schedule(user.user_schedule_task.taskiq_task_id)
         await user_repo.disable_notification_settings_and_remove_task_id(
             telegram_id=user.telegram_id)
