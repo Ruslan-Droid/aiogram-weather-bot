@@ -9,13 +9,16 @@ from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
-from src.bot.dialogs.flows.weather.keyboards import MAIN_SETTINGS_BUTTON
+from src.bot.dialogs.flows.weather.keyboards import (
+    MAIN_SETTINGS_BUTTON,
+)
 from src.bot.dialogs.widgets.i18n import I18nFormat
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.weather.getters import (
     getter_weather_main_menu,
     getter_weather_settings,
     getter_weather_time_settings,
+    getter_weather_city_settings,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -27,6 +30,9 @@ from src.bot.dialogs.flows.weather.handlers import (
     time_handler,
     wrong_time_handler,
     change_coords_on_click,
+    change_city_on_click,
+    city_handler,
+    wrong_city_handler,
     weather_notification_clicked,
     back_button_handler,
 )
@@ -85,6 +91,12 @@ weather_dialog = Dialog(
             id="settings_change_coords_button",
             on_click=change_coords_on_click,
         ),
+        # change city button
+        Button(
+            text=Format("{change_city_button}"),
+            id="change_city_button",
+            on_click=change_city_on_click,
+        ),
         # back button
         Button(
             text=Format("{back_button}"),
@@ -135,5 +147,25 @@ weather_dialog = Dialog(
         markup_factory=ReplyKeyboardFactory(
             resize_keyboard=True),
         state=WeatherSG.weather_changing_coords,
-    )
+    ),
+    # from general settings to changing city
+    Window(
+        I18nFormat("start-change-city"),
+        Button(
+            text=Format("{back_button}"),
+            id="settings_back_button",
+            on_click=go_to_general_settings_on_click,
+        ),
+        MessageInput(
+            func=city_handler,
+            content_types=ContentType.TEXT
+        ),
+        MessageInput(
+            func=wrong_city_handler,
+            content_types=ContentType.ANY
+        ),
+        state=WeatherSG.weather_changing_city,
+        getter=getter_weather_city_settings,
+    ),
+    name="weather_main_dialog",
 )

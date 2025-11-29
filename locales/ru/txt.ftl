@@ -20,7 +20,23 @@ time-changed-successfully =     Время изменено успешно:
 
                                 <b>{ $time }</b> ✅
 
+start-change-city =     Напишите ваш город.
+
+                        Пример:
+
+                        Москва
+
+city-found-successfully =   Ваш город успешно найден и изменен:  <b>{ $city_name }</b> ✅
+
+                            Полный адрес:
+                            { $city_info }
+
+city-not-found =    Ваш город не найден.
+
+                    Укажите корректное наименование.
+
 keyboard-coords = Отправить координаты
+
 
 error-input-registration = Отправьте координаты нажав на кнопку внизу или отправьте через локацию через скрепку.
 error-input-time =  Отправьте время в чат в формате:
@@ -49,6 +65,7 @@ main-settings-button = ⚙️ Общие настройки бота
 language-settings-button = 🌎 Настроить язык
 settings-change-time-notification-button = ⏰ Изменить время уведомлений
 coords-settings-button = 🗺 Изменить координаты
+change-city-button = 🏡 Отправить город
 off-notification-button = 🟢  Рассылка погоды включена
 on-notification-button = 🔴  Рассылка погоды отключена
 

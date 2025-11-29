@@ -30,6 +30,10 @@ class WeatherConfig(BaseModel):
     base_url: str = Field(..., description="Weather API base URL.")
 
 
+class OPENSTREETMAPConfig(BaseModel):
+    base_url: str = Field(..., description="OPEN STREAT MAP BASE URL.")
+
+
 class PostgresConfig(BaseModel):
     name: str = Field(..., description="PostgreSQL database name.")
     host: str = Field(..., description="PostgreSQL server hostname.")
@@ -62,6 +66,7 @@ class AppConfig(BaseModel):
     i18n: I18nConfig
     bot: BotConfig
     weather: WeatherConfig
+    open_street_map: OPENSTREETMAPConfig
     postgres: PostgresConfig
     redis: RedisConfig
     nats: NatsConfig
@@ -97,6 +102,9 @@ def get_config() -> AppConfig:
     weather = WeatherConfig(
         token=_settings.weather_token,
         base_url=_settings.weather_base_url,
+    )
+    open_street_map = OPENSTREETMAPConfig(
+        base_url=_settings.openstreetmap_base_url,
     )
 
     bot = BotConfig(
@@ -134,6 +142,7 @@ def get_config() -> AppConfig:
         logs=logs,
         i18n=i18n,
         weather=weather,
+        open_street_map=open_street_map,
         bot=bot,
         postgres=postgres,
         redis=redis,

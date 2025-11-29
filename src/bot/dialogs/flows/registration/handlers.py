@@ -3,7 +3,7 @@ import logging
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram.types import Message
 from aiogram_dialog.api.protocols.manager import DialogManager
-from aiogram_dialog.api.entities import ShowMode
+from aiogram_dialog.api.entities import ShowMode, Stack
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.infrastructure.database.dao import UserRepository
@@ -52,8 +52,15 @@ async def location_handler(
         longitude=message.location.longitude),
         message_effect_id="5046509860389126442", )
 
-    await dialog_manager.done()
-    await dialog_manager.start(WeatherSG.weather_main_menu)
+    # When we first launch the bot, we don't have a dialog with the main window. When we access the dialog again,
+    # we already have an existing dialog. To avoid creating one each time, we check how many dialogs there are.
+    # If there's more than one, we simply close the extra one with the coordinates dialog.
+    current_stack: Stack = dialog_manager.current_stack()
+    if len(current_stack.intents) > 1:
+        await dialog_manager.done()
+    else:
+        await dialog_manager.done()
+        await dialog_manager.start(WeatherSG.weather_main_menu)
 
 
 async def wrong_location_handler(message: Message,

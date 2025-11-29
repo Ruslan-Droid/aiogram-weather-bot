@@ -29,6 +29,7 @@ from src.infrastructure.database.db import async_session_maker
 from src.infrastructure.cache import get_redis_pool
 
 from src.services.weather_api.weather_service import WeatherService
+from src.services.open_street_map_api.city_service import CityService
 from src.services.delay_service.start_consumer import start_delayed_consumer
 from src.services.scheduler.taskiq_broker import broker, redis_source
 from src.services.i18n.translator_hub import TranslatorHubFactory
@@ -73,12 +74,14 @@ async def main():
         api_key=config.weather.token,
         base_url=config.weather.base_url,
     )
+    city_service: CityService = CityService(base_url=config.open_street_map.base_url)
 
     dp.workflow_data.update(
         bot_locales=sorted(config.i18n.locales),
         translator_hub=translator_hub,
         _cache_pool=cache_pool,
         weather_service=weather_service,
+        city_service=city_service,
         redis_source=redis_source,
     )
     logger.info("Registering error handlers")

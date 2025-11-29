@@ -11,6 +11,7 @@ from src.bot.dialogs.flows.language_settings.states import SettingsSG
 
 from src.infrastructure.database.dao import UserRepository
 from src.infrastructure.database.models import UserModel, UserScheduleTask
+from src.services.open_street_map_api.city_service import CityService
 
 from src.services.weather_api.weather_service import WeatherService
 from src.services.delay_service.publisher import delay_message_deletion
@@ -45,8 +46,10 @@ async def send_today_weather_on_click(
     if current_weather is None:
         logger.info("Cache is empty for user %s", user.telegram_id)
 
+        location = (user.latitude, user.longitude) if user.city is None else user.city
+
         current_weather = await weather.get_current_weather(
-            location=(user.latitude, user.longitude),
+            location=location,
             language=user.language_code,
             i18n=i18n
         )
@@ -83,9 +86,10 @@ async def send_today_forecast_on_click(
 
     if today_forecast is None:
         logger.info("Cache is empty for user %s", user.telegram_id)
+        location = (user.latitude, user.longitude) if user.city is None else user.city
 
         today_forecast = await weather.get_current_weather_forcast(
-            location=(user.latitude, user.longitude),
+            location=location,
             language=user.language_code,
             i18n=i18n
         )
@@ -119,6 +123,7 @@ async def go_to_main_menu_on_click(
     await dialog_manager.switch_to(state=WeatherSG.weather_main_menu)
 
 
+# changing language button
 async def change_language_on_click(
         callback: CallbackQuery,
         widget: Button,
@@ -126,6 +131,7 @@ async def change_language_on_click(
     await dialog_manager.start(state=SettingsSG.lang)
 
 
+# changing time button and handlers
 async def change_notification_time_on_click(
         callback: CallbackQuery,
         widget: Button,
@@ -187,19 +193,82 @@ async def wrong_time_handler(
     await message.answer(text=i18n.get("error-input-time"))
 
 
+# changing coords button
 async def change_coords_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
-    await dialog_manager.switch_to(state=WeatherSG.weather_changing_coords)
+    await dialog_manager.start(state=WeatherSG.weather_changing_coords)
 
 
+# changing city button and handlers
+async def change_city_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    await dialog_manager.switch_to(state=WeatherSG.weather_changing_city)
+
+
+async def city_handler(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager) -> None:
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    city_service: CityService = dialog_manager.middleware_data.get("city_service")
+    user: UserModel = dialog_manager.middleware_data.get("user_row")
+    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+
+    user_repo: UserRepository = UserRepository(session)
+
+    city = message.text.strip().lower()
+    checked_city = await city_service.check_city(city)
+
+    if checked_city:
+        city_info, city_name = checked_city
+
+        await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
+
+        task_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
+            telegram_id=user.telegram_id)
+
+        # update task with new city if notification enabled
+        if task_settings.notifications_enabled:
+            await update_send_daily_weather_task(
+                source=redis_source,
+                time=task_settings.notification_time,
+                location=city_name,
+                language=user.language_code,
+                chat_id=user.telegram_id,
+                taskiq_task_id=task_settings.taskiq_task_id,
+                user_repo=user_repo,
+            )
+
+        await message.answer(text=i18n.get("city-found-successfully", city_name=city_name, city_info=city_info))
+        await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
+    else:
+
+        await message.answer(text=i18n.get("city-not-found"))
+
+
+async def wrong_city_handler(
+        message: Message,
+        widget: MessageInput,
+        dialog_manager: DialogManager) -> None:
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+
+    dialog_manager.show_mode = ShowMode.NO_UPDATE
+    await message.delete()
+    await message.answer(text=i18n.get("city-not-found"))
+
+
+# back buton
 async def back_button_handler(
         message: Message,
         widget: MessageInput,
         dialog_manager: DialogManager) -> None:
     await message.delete()
-    await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
+    await dialog_manager.done()
 
 
 async def weather_notification_clicked(

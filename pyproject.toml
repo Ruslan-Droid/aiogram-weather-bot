@@ -6,7 +6,7 @@ authors = ["ruslan-droid"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.13.5"
+python = "3.13.5"
 aiogram = "^3.22.0"
 aiogram-dialog = "^2.4.0"
 fluentogram = "^1.2.1"
@@ -14,10 +14,10 @@ sqlalchemy = "^2.0.44"
 alembic = "^1.17.2"
 tenacity = "^9.1.2"
 nats-py = "^2.12.0"
-redis = "6.4"
-taskiq = "^0.11.20"
-taskiq-nats = "^0.5.1"
+taskiq = "^0.12.0"
+taskiq-nats = "^0.6.0"
 taskiq-redis = "^1.1.2"
+osmpythontools = "^0.3.6"
 
 
 

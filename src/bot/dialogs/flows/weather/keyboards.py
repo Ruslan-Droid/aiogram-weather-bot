@@ -1,4 +1,4 @@
-from aiogram_dialog.widgets.kbd import SwitchTo
+from aiogram_dialog.widgets.kbd import SwitchTo, Button
 
 from src.bot.dialogs.widgets.i18n import I18nFormat
 from src.bot.dialogs.flows.weather.states import WeatherSG

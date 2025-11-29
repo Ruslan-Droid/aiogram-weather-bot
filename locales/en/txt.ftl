@@ -20,7 +20,23 @@ time-changed-successfully =     Time changed successfully:
 
                                 <b>{ $time }</b> ✅
 
+start-change-city =     Write your city.
+
+                        Example:
+
+                        London
+
+city-found-successfully =   Your city was successfully found and changed:  <b>{ $city_name }</b> ✅
+
+                            Full address:
+                            { $city_info }
+
+city-not-found =    Your city was not found.
+
+                    Please enter a valid name.
+
 keyboard-coords = Send coords
+
 
 error-input-registration = Send coordinates by clicking the button below or send them via the location using a paperclip.
 error-input-time =  Send time to chat in the format:
@@ -49,6 +65,7 @@ main-settings-button = ⚙️ General bot settings
 language-settings-button = 🌎 Change language
 settings-change-time-notification-button = ⏰ Change notification time
 coords-settings-button = 🗺 Change coords
+change-city-button = 🏡 Send city
 off-notification-button = 🟢 Weather alerts are enabled.
 on-notification-button = 🔴 Weather alerts are disabled.
 
