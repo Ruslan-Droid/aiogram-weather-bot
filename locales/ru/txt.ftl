@@ -26,10 +26,12 @@ start-change-city =     Напишите ваш город.
 
                         Москва
 
-city-found-successfully =   Ваш город успешно найден и изменен:  <b>{ $city_name }</b> ✅
+city-found-successfully =   Ваш город успешно найден:  <b>{ $city_name }</b>
 
                             Полный адрес:
                             { $city_info }
+
+                            Сохранить результат?
 
 city-not-found =    Ваш город не найден.
 

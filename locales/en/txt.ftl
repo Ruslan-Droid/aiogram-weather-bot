@@ -26,10 +26,12 @@ start-change-city =     Write your city.
 
                         London
 
-city-found-successfully =   Your city was successfully found and changed:  <b>{ $city_name }</b> ✅
+city-found-successfully =   Your city was successfully found:  <b>{ $city_name }</b>
 
                             Full address:
                             { $city_info }
+
+                            Save result?
 
 city-not-found =    Your city was not found.
 

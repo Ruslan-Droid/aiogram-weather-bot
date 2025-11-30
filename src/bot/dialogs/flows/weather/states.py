@@ -7,3 +7,4 @@ class WeatherSG(StatesGroup):
     weather_changing_coords = State()
     weather_changing_time = State()
     weather_changing_city = State()
+    weather_save_city = State()
