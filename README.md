@@ -14,6 +14,7 @@ This is a weather bot written in python using the `aiogram` framework
 * fluentogram (Internationalization tool in the Fluent paradigm);
 * Docker and Docker Compose (containerization);
 * PostgreSQL (database);
+* SQLAlchemy (ORM for SQL database);
 * NATS (queue and delay tasks);
 * Redis (FSM storage, cache, taskiq result backend);
 * Alembic (database migrations with raw SQL).
