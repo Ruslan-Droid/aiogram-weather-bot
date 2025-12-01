@@ -72,7 +72,7 @@ weather_dialog = Dialog(
     ),
     # General settings menu
     Window(
-        I18nFormat("general-settings-weather-dialog"),
+        Format("{general_settings_weather_settings}"),
         # language settings button
         Button(
             text=Format("{language_settings_button}"),

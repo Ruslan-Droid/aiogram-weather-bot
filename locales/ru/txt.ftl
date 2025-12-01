@@ -1,47 +1,56 @@
-start-hello =   Привет, <b>{ $username }!</b>
+start-hello =
+    Привет, <b>{ $username }!</b>
 
-                Отправь свои координаты для завершения регистрации и дальнейшего получения прогноза погоды.
+    Отправь свои координаты для завершения регистрации и дальнейшего получения прогноза погоды.
 
-                Для отправкии координат нажми на скрепку и поделись локацией.
+    Для отправкии координат нажми на скрепку и поделись локацией.
 
-                Либо нажми на кнопку ниже - <b>Отправить координаты</b>!
+    Либо нажми на кнопку ниже - <b>Отправить координаты</b>!
 
-start-finish-registration =     Координаты успешно установлены:
+start-finish-registration =
+    Координаты успешно установлены:
 
-                                широта = { $latitude },
-                                долгота = { $longitude }.
-start-change-time-notification =    Отправьте в чат время в которое вы хотите получать ежедневный прогноз погоды в формате "XX:XX".
+    широта = { $latitude },
+    долгота = { $longitude }.
 
-                                    Пример:
+start-change-time-notification =
+    Отправьте в чат время в которое вы хотите получать ежедневный прогноз погоды в формате "XX:XX".
 
-                                    09:00
+    Пример:
 
-time-changed-successfully =     Время изменено успешно:
+    09:00
 
-                                <b>{ $time }</b> ✅
+time-changed-successfully =
+    Время изменено успешно:
 
-start-change-city =     Напишите ваш город.
+    <b>{ $time }</b> ✅
 
-                        Пример:
+start-change-city =
+    Напишите ваш город.
 
-                        Москва
+    Пример:
 
-city-found-successfully =   Ваш город успешно найден и изменен:  <b>{ $city_name }</b> ✅
+    Москва
 
-                            Полный адрес:
-                            { $city_info }
+city-found-successfully =
+    Ваш город успешно найден и изменен:  <b>{ $city_name }</b> ✅
 
-city-not-found =    Ваш город не найден.
+    Полный адрес:
+    { $city_info }
 
-                    Укажите корректное наименование.
+city-not-found =
+    Ваш город не найден.
+
+    Укажите корректное наименование.
 
 keyboard-coords = Отправить координаты
 
 
 error-input-registration = Отправьте координаты нажав на кнопку внизу или отправьте через локацию через скрепку.
-error-input-time =  Отправьте время в чат в формате:
+error-input-time =
+    Отправьте время в чат в формате:
 
-                    09:00
+    09:00
 
 start-command-description = Перезапустить бота
 lang-command-description = Настроить язык интерфейса
@@ -51,9 +60,11 @@ help-command = Пример.
 
 back-button = ◀️ Назад
 save-button = ✅ Сохранить
-set-lang-menu = <b>Пожалуйста, выберите язык интерфейса бота</b>
 
-                Выбран 🇷🇺 <b>Русский язык</b>
+set-lang-menu =
+    <b>Пожалуйста, выберите язык интерфейса бота</b>
+
+    Выбран 🇷🇺 <b>Русский язык</b>
 
 ru-lang = 🇷🇺 Русский
 en-lang = 🇬🇧 Английский
@@ -69,17 +80,24 @@ change-city-button = 🏡 Отправить город
 off-notification-button = 🟢  Рассылка погоды включена
 on-notification-button = 🔴  Рассылка погоды отключена
 
-notification-time-alert =   Время ежедневной рассылки:
+notification-time-alert =
+    Время ежедневной рассылки:
 
-                            { $time }
+    { $time }
 
-                            Время можно изменить в общих настройках бота.
+    Время можно изменить в общих настройках бота.
 
-main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
+main-weather-dialog =
+    WeatherBot⛅️ @KLG_Weather_Bot:
 
-                        Для получения прогноза погоды, нажми на кнопку ниже:
+    Для получения прогноза погоды, нажми на кнопку ниже:
 
-general-settings-weather-dialog = Основные настройки WeatherBot⛅️:
+general-settings-weather-settings =
+    Основные настройки WeatherBot⛅️:
+    Язык = <b>{ $language_settings }</b>
+    Время ежедневного прогноза = <b>{ $time_settings }</b>
+    Координаты = <b>{ $coords_settings }</b>
+    Город = <b>{ $city_settings }</b>
 
 parsing-weather-time = Время
 parsing-weather-temperature = Температура

@@ -1,5 +1,9 @@
 from aiogram_dialog import DialogManager
 from fluentogram import TranslatorRunner
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.infrastructure.database.dao import UserRepository
+from src.infrastructure.database.models import UserModel
 
 
 async def getter_weather_main_menu(
@@ -18,8 +22,21 @@ async def getter_weather_main_menu(
 async def getter_weather_settings(
         dialog_manager: DialogManager,
         i18n: TranslatorRunner,
+        session: AsyncSession,
+        user_row: UserModel,
         **kwargs):
+    user_repo: UserRepository = UserRepository(session)
+
+    user_settings = await user_repo.get_all_user_settings(telegram_id=user_row.telegram_id)
+    print(user_settings)
+
     return {
+        "general_settings_weather_settings": i18n.get("general-settings-weather-settings",
+                                                      language_settings=user_settings.get("language_code"),
+                                                      time_settings=user_settings.get("notification_time"),
+                                                      coords_settings=user_settings.get("coords"),
+                                                      city_settings=user_settings.get("city"),
+                                                      ),
         "back_button": i18n.get("back-button"),
         "language_settings_button": i18n.get("language-settings-button"),
         "coords_settings_button": i18n.get("coords-settings-button"),

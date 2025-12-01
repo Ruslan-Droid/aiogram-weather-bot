@@ -1,47 +1,56 @@
-start-hello =   Hello, <b>{ $username }!</b>
+start-hello =
+    Hello, <b>{ $username }!</b>
 
-                Send your coordinates to complete registration and receive weather forecasts.
+    Send your coordinates to complete registration and receive weather forecasts.
 
-                To send your coordinates, click the paperclip and share the location.
+    To send your coordinates, click the paperclip and share the location.
 
-                Or click the button below - <b>Send coordinates</b>!
+    Or click the button below - <b>Send coordinates</b>!
 
-start-finish-registration =     Coordinates successfully set:
+start-finish-registration =
+    Coordinates successfully set:
 
-                                latitude = { $latitude },
-                                longitude = { $longitude }.
-start-change-time-notification =    Send in the chat the time at which you want to receive the daily weather forecast in the format "XX:XX".
+    latitude = { $latitude },
+    longitude = { $longitude }.
 
-                                    Example:
+start-change-time-notification =
+    Send in the chat the time at which you want to receive the daily weather forecast in the format "XX:XX".
 
-                                    09:00
+    Example:
 
-time-changed-successfully =     Time changed successfully:
+    09:00
 
-                                <b>{ $time }</b> ✅
+time-changed-successfully =
+    Time changed successfully:
 
-start-change-city =     Write your city.
+    <b>{ $time }</b> ✅
 
-                        Example:
+start-change-city =
+    Write your city.
 
-                        London
+    Example:
 
-city-found-successfully =   Your city was successfully found and changed:  <b>{ $city_name }</b> ✅
+    London
 
-                            Full address:
-                            { $city_info }
+city-found-successfully =
+    Your city was successfully found and changed:  <b>{ $city_name }</b> ✅
 
-city-not-found =    Your city was not found.
+    Full address:
+    { $city_info }
 
-                    Please enter a valid name.
+city-not-found =
+    Your city was not found.
+
+    Please enter a valid name.
 
 keyboard-coords = Send coords
 
 
 error-input-registration = Send coordinates by clicking the button below or send them via the location using a paperclip.
-error-input-time =  Send time to chat in the format:
+error-input-time =
+    Send time to chat in the format:
 
-                    09:00
+    09:00
 
 start-command-description = Restart the bot
 lang-command-description = Configure the interface language
@@ -51,9 +60,11 @@ help-commad = Example.
 
 back-button = ◀️ Back
 save-button = ✅ Save
-set-lang-menu = <b>Please select the language of the bot interface</b>
 
-                The 🇬🇧 <b>English</b> language is selected
+set-lang-menu =
+    <b>Please select the language of the bot interface</b>
+
+    The 🇬🇧 <b>English</b> language is selected
 
 ru-lang = 🇷🇺 Russian
 en-lang = 🇬🇧 English
@@ -69,17 +80,24 @@ change-city-button = 🏡 Send city
 off-notification-button = 🟢 Weather alerts are enabled.
 on-notification-button = 🔴 Weather alerts are disabled.
 
-notification-time-alert =   Daily notification time:
+notification-time-alert =
+    Daily notification time:
 
-                            { $time }
+    { $time }
 
-                            The time can be changed in general bot settings.
+    The time can be changed in general bot settings.
 
-main-weather-dialog =   WeatherBot⛅️ @KLG_Weather_Bot.
+main-weather-dialog =
+    WeatherBot⛅️ @KLG_Weather_Bot.
 
-                        To get the weather forecast, click the button below:
+    To get the weather forecast, click the button below:
 
-general-settings-weather-dialog = General WeatherBot⛅️ settings:
+general-settings-weather-settings =
+    General WeatherBot⛅️ settings:
+    Language: <b>{ $language_settings }</b>
+    Notification time: <b>{ $time_settings }</b>
+    Coords: <b>{ $coords_settings }</b>
+    City: <b>{ $city_settings }</b>
 
 parsing-weather-time = Time
 parsing-weather-temperature = Temperature

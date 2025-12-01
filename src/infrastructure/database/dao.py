@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -222,4 +223,40 @@ class UserRepository:
         except Exception as e:
             await self.session.rollback()
             logger.error("Error updating notification time for telegram id: %s", telegram_id, e)
+            raise
+
+    async def get_all_user_settings(
+            self,
+            telegram_id: int,
+    ) -> dict[str, Any] | None:
+        try:
+            stmt = (
+                select(
+                    UserModel.language_code,
+                    UserModel.city,
+                    UserModel.latitude,
+                    UserModel.longitude,
+                    UserScheduleTask.notification_time,
+                )
+                .join(UserScheduleTask, UserScheduleTask.telegram_id == UserModel.telegram_id)
+                .where(UserModel.telegram_id == telegram_id)
+            )
+
+            result = await self.session.execute(stmt)
+            row = result.one_or_none()
+
+            if not row:
+                logger.info("User not found by telegram id: %s", telegram_id)
+                return None
+
+            logger.info("Fetched user settings by telegram id: %s", telegram_id)
+            return {
+                "language_code": row.language_code,
+                "notification_time": row.notification_time,
+                "city": row.city,
+                "coords": f"{row.latitude}, {row.longitude}",
+            }
+
+        except Exception as e:
+            logger.error("Error getting user settings by telegram id %s: %s", telegram_id, e)
             raise
