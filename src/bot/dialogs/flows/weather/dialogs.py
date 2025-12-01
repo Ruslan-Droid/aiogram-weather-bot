@@ -3,7 +3,7 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format
@@ -19,6 +19,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_settings,
     getter_weather_time_settings,
     getter_weather_city_settings,
+    getter_weather_changing_city,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -33,8 +34,9 @@ from src.bot.dialogs.flows.weather.handlers import (
     change_city_on_click,
     city_handler,
     wrong_city_handler,
+    save_city_on_click,
+    deny_city_on_click,
     weather_notification_clicked,
-    back_button_handler,
 )
 
 weather_dialog = Dialog(
@@ -137,10 +139,6 @@ weather_dialog = Dialog(
             content_types=ContentType.LOCATION
         ),
         MessageInput(
-            func=back_button_handler,
-            content_types=ContentType.TEXT
-        ),
-        MessageInput(
             func=wrong_location_handler,
             content_types=ContentType.ANY
         ),
@@ -166,6 +164,24 @@ weather_dialog = Dialog(
         ),
         state=WeatherSG.weather_changing_city,
         getter=getter_weather_city_settings,
+    ),
+    # from changing city to save or deny changes
+    Window(
+        Format("{current_city}"),
+        Row(
+            Button(
+                text=Format("{back_button}"),
+                id="city_back_button",
+                on_click=deny_city_on_click,
+            ),
+            Button(
+                text=Format("{save_button}"),
+                id="city_save_button",
+                on_click=save_city_on_click,
+            ),
+        ),
+        getter=getter_weather_changing_city,
+        state=WeatherSG.weather_save_city,
     ),
     name="weather_main_dialog",
 )

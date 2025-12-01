@@ -61,3 +61,16 @@ async def getter_weather_city_settings(
     return {
         "back_button": i18n.get("back-button"),
     }
+
+
+async def getter_weather_changing_city(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs):
+    city_name = dialog_manager.dialog_data["city_name"]
+    city_info = dialog_manager.dialog_data["city_info"]
+    return {
+        "back_button": i18n.get("back-button"),
+        "save_button": i18n.get("save-button"),
+        "current_city": i18n.get("city-found-successfully", city_name=city_name, city_info=city_info),
+    }

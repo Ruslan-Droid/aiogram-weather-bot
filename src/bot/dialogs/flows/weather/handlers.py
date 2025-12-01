@@ -177,7 +177,7 @@ async def time_handler(
 
             await message.answer(text=i18n.get("time-changed-successfully", time=time),
                                  message_effect_id="5046509860389126442")
-            await dialog_manager.switch_to(state=WeatherSG.weather_main_menu)
+            await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
     else:
         await message.delete()
 
@@ -214,40 +214,18 @@ async def city_handler(
         widget: MessageInput,
         dialog_manager: DialogManager) -> None:
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
-    session: AsyncSession = dialog_manager.middleware_data.get("session")
     city_service: CityService = dialog_manager.middleware_data.get("city_service")
-    user: UserModel = dialog_manager.middleware_data.get("user_row")
-    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
-
-    user_repo: UserRepository = UserRepository(session)
 
     city = message.text.strip().lower()
     checked_city = await city_service.check_city(city)
 
     if checked_city:
         city_info, city_name = checked_city
+        dialog_manager.dialog_data["city_name"] = city_name
+        dialog_manager.dialog_data["city_info"] = city_info
 
-        await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
-
-        task_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
-            telegram_id=user.telegram_id)
-
-        # update task with new city if notification enabled
-        if task_settings.notifications_enabled:
-            await update_send_daily_weather_task(
-                source=redis_source,
-                time=task_settings.notification_time,
-                location=city_name,
-                language=user.language_code,
-                chat_id=user.telegram_id,
-                taskiq_task_id=task_settings.taskiq_task_id,
-                user_repo=user_repo,
-            )
-
-        await message.answer(text=i18n.get("city-found-successfully", city_name=city_name, city_info=city_info))
-        await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
+        await dialog_manager.switch_to(state=WeatherSG.weather_save_city)
     else:
-
         await message.answer(text=i18n.get("city-not-found"))
 
 
@@ -262,13 +240,45 @@ async def wrong_city_handler(
     await message.answer(text=i18n.get("city-not-found"))
 
 
-# back buton
-async def back_button_handler(
-        message: Message,
-        widget: MessageInput,
+async def save_city_on_click(
+        callback: CallbackQuery,
+        widget: Button,
         dialog_manager: DialogManager) -> None:
-    await message.delete()
-    await dialog_manager.done()
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    user: UserModel = dialog_manager.middleware_data.get("user_row")
+    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+
+    user_repo: UserRepository = UserRepository(session)
+
+    city_name = dialog_manager.dialog_data["city_name"]
+
+    await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
+
+    task_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
+        telegram_id=user.telegram_id)
+
+    # update task with new city if notification enabled
+    if task_settings.notifications_enabled:
+        await update_send_daily_weather_task(
+            source=redis_source,
+            time=task_settings.notification_time,
+            location=city_name,
+            language=user.language_code,
+            chat_id=user.telegram_id,
+            taskiq_task_id=task_settings.taskiq_task_id,
+            user_repo=user_repo,
+        )
+
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(WeatherSG.weather_general_settings)
+
+
+async def deny_city_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(WeatherSG.weather_changing_city)
 
 
 async def weather_notification_clicked(
