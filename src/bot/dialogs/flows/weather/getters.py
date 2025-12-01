@@ -28,7 +28,6 @@ async def getter_weather_settings(
     user_repo: UserRepository = UserRepository(session)
 
     user_settings = await user_repo.get_all_user_settings(telegram_id=user_row.telegram_id)
-    print(user_settings)
 
     return {
         "general_settings_weather_settings": i18n.get("general-settings-weather-settings",

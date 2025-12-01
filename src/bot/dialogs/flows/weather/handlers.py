@@ -198,6 +198,7 @@ async def change_coords_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
+    dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
     await dialog_manager.start(state=WeatherSG.weather_changing_coords)
 
 
@@ -206,6 +207,8 @@ async def change_city_on_click(
         callback: CallbackQuery,
         widget: Button,
         dialog_manager: DialogManager) -> None:
+    dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
+    await callback.message.delete()
     await dialog_manager.switch_to(state=WeatherSG.weather_changing_city)
 
 
@@ -215,6 +218,8 @@ async def city_handler(
         dialog_manager: DialogManager) -> None:
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
     city_service: CityService = dialog_manager.middleware_data.get("city_service")
+
+    dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
 
     city = message.text.strip().lower()
     checked_city = await city_service.check_city(city)
@@ -226,6 +231,7 @@ async def city_handler(
 
         await dialog_manager.switch_to(state=WeatherSG.weather_save_city)
     else:
+        await message.delete()
         await message.answer(text=i18n.get("city-not-found"))
 
 
