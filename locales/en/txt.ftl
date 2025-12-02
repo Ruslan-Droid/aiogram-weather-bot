@@ -73,6 +73,7 @@ lang-saved = ✅ The language settings have been saved successfully!
 weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
+add-group-button = 👥 Add bot to a group
 language-settings-button = 🌎 Change language
 settings-change-time-notification-button = ⏰ Change notification time
 coords-settings-button = 🗺 Change coords

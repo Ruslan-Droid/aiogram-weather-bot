@@ -73,6 +73,7 @@ lang-saved = ✅ Настройки языка успешно сохранены
 weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
+add-group-button = 👥 Добавить бота в группу
 language-settings-button = 🌎 Настроить язык
 settings-change-time-notification-button = ⏰ Изменить время уведомлений
 coords-settings-button = 🗺 Изменить координаты

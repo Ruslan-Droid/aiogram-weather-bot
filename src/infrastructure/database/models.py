@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, Float, ForeignKey
+from sqlalchemy import BigInteger, String, Float, ForeignKey, Boolean, JSON
 from src.infrastructure.database.db import Base
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from enum import Enum
@@ -37,8 +37,8 @@ class UserModel(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_banned: Mapped[bool] = mapped_column(default=False)
 
-    user_schedule_task: Mapped["UserScheduleTask"] = relationship(
-        "UserScheduleTask",
+    user_schedule_task: Mapped["UserScheduleTaskModel"] = relationship(
+        "UserScheduleTaskModel",
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
@@ -51,7 +51,7 @@ class UserModel(Base):
                 f"city={self.city}>")
 
 
-class UserScheduleTask(Base):
+class UserScheduleTaskModel(Base):
     __tablename__ = "user_schedule_task"
 
     telegram_id: Mapped[int] = mapped_column(
@@ -64,3 +64,25 @@ class UserScheduleTask(Base):
     notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
     taskiq_task_id: Mapped[str | None] = mapped_column(String(100))
     user: Mapped["UserModel"] = relationship("UserModel", back_populates="user_schedule_task")
+
+
+class GroupChatModel(Base):
+    __tablename__ = "group_chats"
+
+    chat_id: Mapped[int] = mapped_column(
+        BigInteger,
+        unique=True,
+        nullable=False,
+        index=True
+    )
+    title: Mapped[str | None] = mapped_column(String(255))
+    chat_type: Mapped[str] = mapped_column(String(20), default="supergroup")  # group, supergroup, channel
+    owner_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
+    owner_username: Mapped[str | None] = mapped_column(String(32))
+    bot_status: Mapped[str] = mapped_column(String(20),
+                                            default="member")  # member, administrator, restricted, left, kicked
+    is_bot_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    added_by_id: Mapped[int | None] = mapped_column(BigInteger)

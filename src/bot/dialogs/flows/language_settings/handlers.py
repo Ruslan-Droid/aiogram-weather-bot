@@ -9,7 +9,7 @@ from fluentogram import TranslatorHub, TranslatorRunner
 from taskiq_redis import RedisScheduleSource
 
 from src.bot.keyboards.menu_button import get_main_menu_commands
-from src.infrastructure.database.models import UserModel, UserScheduleTask
+from src.infrastructure.database.models import UserModel, UserScheduleTaskModel
 from src.infrastructure.database.dao import UserRepository
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +56,7 @@ async def update_user_lang(
         ),
     )
 
-    task_settings: UserScheduleTask = await user_repo.get_user_notification_settings(
+    task_settings: UserScheduleTaskModel = await user_repo.get_user_notification_settings(
         telegram_id=user_row.telegram_id)
 
     # update task with new city if notification enabled

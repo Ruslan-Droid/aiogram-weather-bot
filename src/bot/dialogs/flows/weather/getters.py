@@ -16,6 +16,7 @@ async def getter_weather_main_menu(
         "main_settings": i18n.get("main-settings-button"),
         "off_notification": i18n.get("off-notification-button"),
         "on_notification": i18n.get("on-notification-button"),
+        "add_group_button": i18n.get("add-group-button"),
     }
 
 

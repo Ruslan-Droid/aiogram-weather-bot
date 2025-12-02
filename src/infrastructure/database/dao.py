@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.models import UserModel, UserRole, UserScheduleTask
+from src.infrastructure.database.models import UserModel, UserRole, UserScheduleTaskModel, GroupChatModel
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class UserRepository:
             last_name=last_name,
             language_code=language_code,
             role=role,
-            user_schedule_task=UserScheduleTask()
+            user_schedule_task=UserScheduleTaskModel()
         )
         try:
             self.session.add(new_user)
@@ -137,9 +137,9 @@ class UserRepository:
     async def get_user_notification_settings(
             self,
             telegram_id: int,
-    ) -> UserScheduleTask | None:
+    ) -> UserScheduleTaskModel | None:
         try:
-            stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+            stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
             result = await self.session.execute(stmt)
             notification_settings = result.scalar_one_or_none()
             if notification_settings:
@@ -157,7 +157,7 @@ class UserRepository:
             telegram_id: int,
             task_id: str
     ) -> None:
-        stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+        stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
         result = await self.session.execute(stmt)
         user_notification_settings = result.scalar_one_or_none()
 
@@ -174,7 +174,7 @@ class UserRepository:
             self,
             telegram_id: int,
     ) -> None:
-        stmt = select(UserScheduleTask).filter(UserScheduleTask.telegram_id == telegram_id)
+        stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
         result = await self.session.execute(stmt)
         user_notification_settings = result.scalar_one_or_none()
 
@@ -194,8 +194,8 @@ class UserRepository:
     ) -> None:
         try:
             stmt = (
-                update(UserScheduleTask)
-                .where(UserScheduleTask.telegram_id == telegram_id)
+                update(UserScheduleTaskModel)
+                .where(UserScheduleTaskModel.telegram_id == telegram_id)
                 .values(taskiq_task_id=taskiq_task_id)
             )
             await self.session.execute(stmt)
@@ -213,8 +213,8 @@ class UserRepository:
     ) -> None:
         try:
             stmt = (
-                update(UserScheduleTask)
-                .where(UserScheduleTask.telegram_id == telegram_id)
+                update(UserScheduleTaskModel)
+                .where(UserScheduleTaskModel.telegram_id == telegram_id)
                 .values(notification_time=notification_time)
             )
             await self.session.execute(stmt)
@@ -236,9 +236,9 @@ class UserRepository:
                     UserModel.city,
                     UserModel.latitude,
                     UserModel.longitude,
-                    UserScheduleTask.notification_time,
+                    UserScheduleTaskModel.notification_time,
                 )
-                .join(UserScheduleTask, UserScheduleTask.telegram_id == UserModel.telegram_id)
+                .join(UserScheduleTaskModel, UserScheduleTaskModel.telegram_id == UserModel.telegram_id)
                 .where(UserModel.telegram_id == telegram_id)
             )
 
@@ -260,3 +260,28 @@ class UserRepository:
         except Exception as e:
             logger.error("Error getting user settings by telegram id %s: %s", telegram_id, e)
             raise
+
+
+class GroupChatRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create_new_group(
+            self,
+            chat_id: int,
+            title: str,
+            chat_type: str,
+            owner_id: int,
+            owner_username: str,
+            bot_status: str,
+            is_bot_admin: bool,
+            admin_permissions: dict,
+            added_by_id: int,
+    ) -> GroupChatModel:
+        pass
+
+    async def get_group_by_chat_id(
+            self,
+            chat_id: int,
+    ) -> GroupChatModel | None:
+        pass

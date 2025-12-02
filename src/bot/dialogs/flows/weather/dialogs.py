@@ -3,10 +3,10 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
-from aiogram_dialog.widgets.text import Format
+from aiogram_dialog.widgets.text import Format, Const
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
 from src.bot.dialogs.flows.weather.keyboards import (
@@ -68,6 +68,11 @@ weather_dialog = Dialog(
             text=Format("{main_settings}"),
             id="main_settings_button",
             on_click=go_to_general_settings_on_click,
+        ),
+        Url(
+            text=Format("{add_group_button}"),
+            url=Const("https://t.me/KLG_Weather_Bot?startgroup=newgroups&admin=manage_chat+delete_messages"),
+            id="add_group_button",
         ),
         getter=getter_weather_main_menu,
         state=WeatherSG.weather_main_menu,
