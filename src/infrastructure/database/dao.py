@@ -35,6 +35,7 @@ class UserRepository:
             first_name: str | None,
             last_name: str | None,
             language_code: str | None = "en",
+            is_active: bool = True,
             role: UserRole = UserRole.USER,
     ) -> UserModel:
         new_user = UserModel(
@@ -44,6 +45,7 @@ class UserRepository:
             last_name=last_name,
             language_code=language_code,
             role=role,
+            is_active=is_active,
             user_schedule_task=UserScheduleTaskModel()
         )
         try:

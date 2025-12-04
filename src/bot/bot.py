@@ -125,10 +125,6 @@ async def main():
         logger.info("Starting taskiq broker")
         await broker.startup()
 
-    @broker.on_event(TaskiqEvents.CLIENT_STARTUP)
-    async def startup(state: TaskiqState) -> None:
-        state.example = "example"
-
     # Launch polling and delayed message consumer
     try:
         await asyncio.gather(

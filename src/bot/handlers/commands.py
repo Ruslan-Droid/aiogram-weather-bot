@@ -8,6 +8,7 @@ from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 from taskiq_redis import RedisScheduleSource
 
+from src.bot.filters.chat_type_filters import ChatTypeFilterMessage, ChatTypeFilterCallback
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 from src.bot.dialogs.flows.registration.states import StartRegistrationSG
 from src.bot.dialogs.flows.weather.states import WeatherSG
@@ -16,6 +17,8 @@ from src.infrastructure.database.dao import UserRepository
 from src.bot.keyboards.menu_button import get_main_menu_commands
 
 commands_router = Router()
+commands_router.message.filter(ChatTypeFilterMessage("private"))
+commands_router.callback_query.filter(ChatTypeFilterCallback("private"))
 
 
 @commands_router.message(CommandStart())

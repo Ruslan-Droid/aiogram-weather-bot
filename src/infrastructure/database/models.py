@@ -76,13 +76,10 @@ class GroupChatModel(Base):
         index=True
     )
     title: Mapped[str | None] = mapped_column(String(255))
-    chat_type: Mapped[str] = mapped_column(String(20), default="supergroup")  # group, supergroup, channel
-    owner_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
-    owner_username: Mapped[str | None] = mapped_column(String(32))
-    bot_status: Mapped[str] = mapped_column(String(20),
-                                            default="member")  # member, administrator, restricted, left, kicked
-    is_bot_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    chat_type: Mapped[str] = mapped_column(String(20))  # group, supergroup, channel
+    added_by_id: Mapped[int | None] = mapped_column(BigInteger)
+    bot_status: Mapped[str] = mapped_column(String(20))  # member, administrator, restricted, left, kicked
     admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    added_by_id: Mapped[int | None] = mapped_column(BigInteger)
+class
