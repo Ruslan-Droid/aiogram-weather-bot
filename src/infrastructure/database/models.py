@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, Float, ForeignKey, Boolean, JSON
+from sqlalchemy import BigInteger, String, Float, ForeignKey, Boolean, JSON, UniqueConstraint
 from src.infrastructure.database.db import Base
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from enum import Enum
@@ -24,6 +24,10 @@ class UserModel(Base):
     first_name: Mapped[str | None] = mapped_column(String(64))
     last_name: Mapped[str | None] = mapped_column(String(64))
     language_code: Mapped[str | None] = mapped_column(String(10), default="ru")
+    role: Mapped[UserRole] = mapped_column(PgEnum(UserRole, name="user_role"), default=UserRole.USER)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    is_banned: Mapped[bool] = mapped_column(default=False)
+
     # Timezone region name (e.g., 'Europe/Moscow')
     tz_region: Mapped[str | None] = mapped_column(String(50))
     # Manual timezone offset in the format '+03:00' or '-05:00'
@@ -33,25 +37,29 @@ class UserModel(Base):
     longitude: Mapped[float | None] = mapped_column(Float)
     city: Mapped[str | None] = mapped_column(String(100))
 
-    role: Mapped[UserRole] = mapped_column(PgEnum(UserRole, name="user_role"), default=UserRole.USER)
-    is_active: Mapped[bool] = mapped_column(default=True)
-    is_banned: Mapped[bool] = mapped_column(default=False)
-
-    user_schedule_task: Mapped["UserScheduleTaskModel"] = relationship(
-        "UserScheduleTaskModel",
+    # One-to-one с DailyUserTaskModel
+    daily_task: Mapped["DailyUserTaskModel"] = relationship(
+        "DailyUserTaskModel",
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
-        lazy="joined"
+        lazy="select"
+    )
+    # Many-to-many связь с GroupModel через GroupAdminModel
+    admin_group_associations: Mapped[list["GroupAdminModel"]] = relationship(
+        "GroupAdminModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        lazy="selectin"
     )
 
-    def __repr__(self):
-        return (f"<User(id={self.id}, telegram_id={self.telegram_id}, username='{self.username}', "
-                f"lang='{self.language_code}', coords='{self.latitude}, {self.longitude}'>')>"
-                f"city={self.city}>")
+    # Свойство для удобного доступа к группам пользователя
+    @property
+    def admin_groups(self) -> list["GroupModel"]:
+        return [assoc.group for assoc in self.admin_group_associations if assoc.is_active]
 
 
-class UserScheduleTaskModel(Base):
+class DailyUserTaskModel(Base):
     __tablename__ = "user_schedule_task"
 
     telegram_id: Mapped[int] = mapped_column(
@@ -63,13 +71,14 @@ class UserScheduleTaskModel(Base):
     notifications_enabled: Mapped[bool] = mapped_column(default=False)
     notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
     taskiq_task_id: Mapped[str | None] = mapped_column(String(100))
-    user: Mapped["UserModel"] = relationship("UserModel", back_populates="user_schedule_task")
+
+    user: Mapped["UserModel"] = relationship("UserModel", back_populates="daily_task")
 
 
-class GroupChatModel(Base):
-    __tablename__ = "group_chats"
+class GroupModel(Base):
+    __tablename__ = "groups"
 
-    chat_id: Mapped[int] = mapped_column(
+    group_id: Mapped[int] = mapped_column(
         BigInteger,
         unique=True,
         nullable=False,
@@ -82,4 +91,42 @@ class GroupChatModel(Base):
     admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-class
+    # Many-to-many связь с UserModel через GroupAdminModel
+    admin_user_associations: Mapped[list["GroupAdminModel"]] = relationship(
+        "GroupAdminModel",
+        back_populates="group",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
+
+    # Свойство для удобного доступа к админам группы
+    @property
+    def admins(self) -> list["UserModel"]:
+        return [assoc.user for assoc in self.admin_user_associations if assoc.is_active]
+
+
+class GroupAdminModel(Base):
+    __tablename__ = "group_admins"
+
+    telegram_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("users.telegram_id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
+
+    group_id: Mapped[int] = mapped_column(
+        BigInteger,
+        ForeignKey("groups.group_id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+    )
+    admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    user: Mapped["UserModel"] = relationship("UserModel", back_populates="admin_group_associations")
+    group: Mapped["GroupModel"] = relationship("GroupModel", back_populates="admin_user_associations")
+
+    __table_args__ = (
+        UniqueConstraint('telegram_id', 'group_id', name='uq_user_group_admin'),
+    )

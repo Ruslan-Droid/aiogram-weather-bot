@@ -10,7 +10,7 @@ from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 
 from src.infrastructure.database.dao import UserRepository
-from src.infrastructure.database.models import UserModel, UserScheduleTaskModel
+from src.infrastructure.database.models import UserModel, DailyUserTaskModel
 from src.services.open_street_map_api.city_service import CityService
 
 from src.services.weather_api.weather_service import WeatherService
@@ -158,7 +158,7 @@ async def time_handler(
             user_repo: UserRepository = UserRepository(session)
             await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
 
-            task_settings: UserScheduleTaskModel = await user_repo.get_user_notification_settings(
+            task_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
                 telegram_id=user.telegram_id)
 
             # update task with new time if notification enabled
@@ -260,7 +260,7 @@ async def save_city_on_click(
 
     await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
 
-    task_settings: UserScheduleTaskModel = await user_repo.get_user_notification_settings(
+    task_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
         telegram_id=user.telegram_id)
 
     # update task with new city if notification enabled
@@ -297,7 +297,7 @@ async def weather_notification_clicked(
     user_repo: UserRepository = UserRepository(session)
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
 
-    user_notification_settings: UserScheduleTaskModel = await user_repo.get_user_notification_settings(
+    user_notification_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
         telegram_id=user.telegram_id)
 
     if not user_notification_settings.notifications_enabled:

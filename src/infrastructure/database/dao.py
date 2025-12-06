@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.models import UserModel, UserRole, UserScheduleTaskModel, GroupChatModel
+from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class UserRepository:
             language_code=language_code,
             role=role,
             is_active=is_active,
-            user_schedule_task=UserScheduleTaskModel()
+            user_schedule_task=DailyUserTaskModel()
         )
         try:
             self.session.add(new_user)
@@ -139,9 +139,9 @@ class UserRepository:
     async def get_user_notification_settings(
             self,
             telegram_id: int,
-    ) -> UserScheduleTaskModel | None:
+    ) -> DailyUserTaskModel | None:
         try:
-            stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
+            stmt = select(DailyUserTaskModel).filter(DailyUserTaskModel.telegram_id == telegram_id)
             result = await self.session.execute(stmt)
             notification_settings = result.scalar_one_or_none()
             if notification_settings:
@@ -159,7 +159,7 @@ class UserRepository:
             telegram_id: int,
             task_id: str
     ) -> None:
-        stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
+        stmt = select(DailyUserTaskModel).filter(DailyUserTaskModel.telegram_id == telegram_id)
         result = await self.session.execute(stmt)
         user_notification_settings = result.scalar_one_or_none()
 
@@ -176,7 +176,7 @@ class UserRepository:
             self,
             telegram_id: int,
     ) -> None:
-        stmt = select(UserScheduleTaskModel).filter(UserScheduleTaskModel.telegram_id == telegram_id)
+        stmt = select(DailyUserTaskModel).filter(DailyUserTaskModel.telegram_id == telegram_id)
         result = await self.session.execute(stmt)
         user_notification_settings = result.scalar_one_or_none()
 
@@ -196,8 +196,8 @@ class UserRepository:
     ) -> None:
         try:
             stmt = (
-                update(UserScheduleTaskModel)
-                .where(UserScheduleTaskModel.telegram_id == telegram_id)
+                update(DailyUserTaskModel)
+                .where(DailyUserTaskModel.telegram_id == telegram_id)
                 .values(taskiq_task_id=taskiq_task_id)
             )
             await self.session.execute(stmt)
@@ -215,8 +215,8 @@ class UserRepository:
     ) -> None:
         try:
             stmt = (
-                update(UserScheduleTaskModel)
-                .where(UserScheduleTaskModel.telegram_id == telegram_id)
+                update(DailyUserTaskModel)
+                .where(DailyUserTaskModel.telegram_id == telegram_id)
                 .values(notification_time=notification_time)
             )
             await self.session.execute(stmt)
@@ -238,9 +238,9 @@ class UserRepository:
                     UserModel.city,
                     UserModel.latitude,
                     UserModel.longitude,
-                    UserScheduleTaskModel.notification_time,
+                    DailyUserTaskModel.notification_time,
                 )
-                .join(UserScheduleTaskModel, UserScheduleTaskModel.telegram_id == UserModel.telegram_id)
+                .join(DailyUserTaskModel, DailyUserTaskModel.telegram_id == UserModel.telegram_id)
                 .where(UserModel.telegram_id == telegram_id)
             )
 
@@ -279,11 +279,11 @@ class GroupChatRepository:
             is_bot_admin: bool,
             admin_permissions: dict,
             added_by_id: int,
-    ) -> GroupChatModel:
+    ) -> GroupModel:
         pass
 
     async def get_group_by_chat_id(
             self,
             chat_id: int,
-    ) -> GroupChatModel | None:
+    ) -> GroupModel | None:
         pass

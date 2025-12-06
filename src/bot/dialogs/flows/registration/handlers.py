@@ -7,7 +7,7 @@ from aiogram_dialog.api.entities import ShowMode, Stack
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.infrastructure.database.dao import UserRepository
-from src.infrastructure.database.models import UserModel, UserScheduleTaskModel
+from src.infrastructure.database.models import UserModel, DailyUserTaskModel
 from src.services.scheduler.tasks import update_send_daily_weather_task
 
 from fluentogram import TranslatorRunner
@@ -27,7 +27,7 @@ async def location_handler(
     user: UserModel = dialog_manager.middleware_data.get("user_row")
 
     user_rep: UserRepository = UserRepository(session)
-    task_settings: UserScheduleTaskModel = await user_rep.get_user_notification_settings(telegram_id=user.telegram_id)
+    task_settings: DailyUserTaskModel = await user_rep.get_user_notification_settings(telegram_id=user.telegram_id)
 
     await user_rep.update_users_coordinates(
         telegram_id=message.from_user.id,

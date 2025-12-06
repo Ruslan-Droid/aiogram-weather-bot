@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
-from src.infrastructure.database.models import UserModel, GroupChatModel
+from src.infrastructure.database.models import UserModel, GroupModel
 
 groups_router = Router()
 groups_router.my_chat_member.filter(ChatTypeFilterChatMember(chat_type=["group", "supergroup"]))
