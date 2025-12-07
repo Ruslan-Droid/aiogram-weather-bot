@@ -46,7 +46,7 @@ class UserRepository:
             language_code=language_code,
             role=role,
             is_active=is_active,
-            user_schedule_task=DailyUserTaskModel()
+            daily_task=DailyUserTaskModel()
         )
         try:
             self.session.add(new_user)

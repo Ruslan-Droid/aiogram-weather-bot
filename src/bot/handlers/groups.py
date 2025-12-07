@@ -1,5 +1,6 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import ChatMemberUpdatedFilter, JOIN_TRANSITION, LEAVE_TRANSITION
+from aiogram.filters import ChatMemberUpdatedFilter, JOIN_TRANSITION, LEAVE_TRANSITION, KICKED, LEFT, RESTRICTED, \
+    MEMBER, IS_ADMIN
 from aiogram.types import ChatMemberUpdated, Message
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -63,7 +64,7 @@ async def group_to_supegroup_migration(
         member_status_changed=
         (KICKED | LEFT | RESTRICTED | MEMBER)
         >>
-        (ADMINISTRATOR | CREATOR)
+        IS_ADMIN
     )
 )
 async def admin_promoted(event: ChatMemberUpdated, admins: set[int]):
@@ -76,12 +77,10 @@ async def admin_promoted(event: ChatMemberUpdated, admins: set[int]):
 
 @groups_router.chat_member(
     ChatMemberUpdatedFilter(
-        # Обратите внимание на направление стрелок
-        # Или можно было поменять местами объекты в скобках
         member_status_changed=
         (KICKED | LEFT | RESTRICTED | MEMBER)
         <<
-        (ADMINISTRATOR | CREATOR)
+        IS_ADMIN
     )
 )
 async def admin_demoted(event: ChatMemberUpdated, admins: set[int]):
