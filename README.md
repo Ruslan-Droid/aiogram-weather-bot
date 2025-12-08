@@ -18,6 +18,10 @@ This is a weather bot written in python using the `aiogram` framework
 * NATS (queue and delay tasks);
 * Redis (FSM storage, cache, taskiq result backend);
 * Alembic (database migrations with raw SQL).
+  
+### Used services
+* https://www.weatherapi.com/ - API to get weather
+* https://www.openstreetmap.org/ - API for checking the availability of a city
 
 ### Structure
 
