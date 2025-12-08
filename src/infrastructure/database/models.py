@@ -45,7 +45,7 @@ class UserModel(Base):
         "GroupAdminModel",
         back_populates="user",
         cascade="all, delete-orphan",
-        lazy="selectin"
+        lazy="select"
     )
 
     # Свойство для удобного доступа к группам пользователя

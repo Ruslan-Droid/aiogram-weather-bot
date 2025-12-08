@@ -107,3 +107,12 @@ parsing-weather-current = Weather
 parsing-weather-wind = Wind
 
 parsing-weather-forecast-day = Weather forecast for the day
+
+bot-added-as-admin =
+    The bot has been added to the group as an administrator.
+
+    It will now be able to send daily weather reports.
+
+    To enable it and set the time, go to the main chat with the bot.
+
+bot-added-not-as-admin = To allow the bot to send daily weather, add administrator rights to it.

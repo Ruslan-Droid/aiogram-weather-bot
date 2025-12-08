@@ -338,7 +338,6 @@ class GroupChatRepository:
                 existing_group.group_telegram_id = chat_id
                 existing_group.title = title
                 existing_group.chat_type = chat_type
-                existing_group.added_by_telegram_id = added_by_telegram_id
                 existing_group.bot_status = bot_status
                 existing_group.admin_permissions = admin_permissions
                 existing_group.is_active = is_active
@@ -367,4 +366,23 @@ class GroupChatRepository:
 
         except Exception as e:
             logger.error("Error getting user by telegram id %s: %s", telegram_chat_id, str(e))
+            raise
+
+    async def update_activity_status_for_group(
+            self,
+            chat_id: int,
+            status: bool
+    ) -> None:
+        try:
+            stmt = (
+                update(GroupModel)
+                .where(GroupModel.group_telegram_id == chat_id)
+                .values(is_active=status)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated is_active status for group id: %s", chat_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating is_active status for group id: %s error: %s", chat_id, str(e))
             raise
