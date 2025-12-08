@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import BigInteger, String, Float, ForeignKey, Boolean, JSON, UniqueConstraint, Index
+from sqlalchemy import BigInteger, String, Float, ForeignKey, Boolean, JSON, UniqueConstraint, Index, Integer
 from src.infrastructure.database.db import Base
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum
 from enum import Enum
@@ -34,15 +34,13 @@ class UserModel(Base):
     longitude: Mapped[float | None] = mapped_column(Float)
     city: Mapped[str | None] = mapped_column(String(100))
 
-    # One-to-one с DailyUserTaskModel
     daily_task: Mapped["DailyUserTaskModel"] = relationship(
         "DailyUserTaskModel",
         back_populates="user",
         cascade="all, delete-orphan",
         uselist=False,
-        lazy="select"
     )
-    # Many-to-many связь с GroupModel через GroupAdminModel
+
     admin_group_associations: Mapped[list["GroupAdminModel"]] = relationship(
         "GroupAdminModel",
         back_populates="user",
@@ -60,11 +58,10 @@ class DailyUserTaskModel(Base):
     __tablename__ = "user_schedule_task"
 
     user_id: Mapped[int] = mapped_column(
-        BigInteger,
+        Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
         nullable=False)
-
     notifications_enabled: Mapped[bool] = mapped_column(default=False)
     notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
     taskiq_task_id: Mapped[str | None] = mapped_column(String(100))
@@ -75,7 +72,7 @@ class DailyUserTaskModel(Base):
 class GroupModel(Base):
     __tablename__ = "groups"
 
-    group_id: Mapped[int] = mapped_column(
+    group_telegram_id: Mapped[int] = mapped_column(
         BigInteger,
         unique=True,
         nullable=False,
@@ -83,15 +80,14 @@ class GroupModel(Base):
     )
     title: Mapped[str | None] = mapped_column(String(255))
     chat_type: Mapped[str] = mapped_column(String(20))  # group, supergroup, channel
-    added_by_id: Mapped[int | None] = mapped_column(
+    added_by_telegram_id: Mapped[int | None] = mapped_column(
         BigInteger,
-        ForeignKey("users.id", ondelete="SET NULL")
+        ForeignKey("users.telegram_id", ondelete="SET NULL")
     )
     bot_status: Mapped[str] = mapped_column(String(20))  # member, administrator, restricted, left, kicked
     admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    # Many-to-many связь с UserModel через GroupAdminModel
     admin_user_associations: Mapped[list["GroupAdminModel"]] = relationship(
         "GroupAdminModel",
         back_populates="group",
@@ -109,13 +105,13 @@ class GroupAdminModel(Base):
     __tablename__ = "group_admins"
 
     user_id: Mapped[int] = mapped_column(
-        BigInteger,
+        Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
     group_id: Mapped[int] = mapped_column(
-        BigInteger,
+        Integer,
         ForeignKey("groups.id", ondelete="CASCADE"),
         nullable=False,
     )
