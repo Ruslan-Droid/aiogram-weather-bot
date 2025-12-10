@@ -109,12 +109,25 @@ parsing-weather-wind = Wind
 parsing-weather-forecast-day = Weather forecast for the day
 
 bot-added-as-admin =
-    The bot has been added to the group as an administrator.
-
-    It will now be able to send daily weather reports.
-
     To enable it and set the time, go to the main chat with the bot.
 
     Group settings are only available to the group <b>administrator</b> ❗️❗️
 
 bot-added-not-as-admin = To allow the bot to send daily weather, add administrator rights to it.
+
+bot-lost-admin-rights =
+    The bot has been stripped of its administrator rights.
+
+    It will no longer be able to send weather information to the chat.
+
+bot-get-admin-rights =
+    The bot has been granted administrator rights.
+
+    It can now send weather information to the chat.
+
+    The group administrator can configure the bot via private messages.
+
+bot-update-admin-list =
+    The bot has successfully updated the list of current administrators.
+
+    The administrator can private message the bot and configure it for this group.

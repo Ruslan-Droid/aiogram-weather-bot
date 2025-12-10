@@ -8,10 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
-from src.bot.enums.group_data import GroupData, extract_group_data
-from src.bot.services.group_admin_service import sync_group_admins
-from src.infrastructure.database.dao import GroupChatRepository, UserRepository
-from src.infrastructure.database.models import GroupModel
+from src.bot.services.group_admin_service import sync_group_admins, update_or_create_user_in_groups, \
+    update_or_create_group_in_groups_events
 
 logger = logging.getLogger(__name__)
 
@@ -28,30 +26,14 @@ async def bot_added_to_group(
         i18n: TranslatorRunner,
         session: AsyncSession,
 ) -> None:
-    user_repo = UserRepository(session)
-    from_user = event.from_user
-
-    user = await user_repo.create_or_update_user(
-        telegram_id=from_user.id,
-        username=from_user.username,
-        first_name=from_user.first_name,
-        last_name=from_user.last_name,
-        language_code=from_user.language_code or "en",
-        is_active=False,
+    await update_or_create_user_in_groups(
+        event=event,
+        session=session,
     )
 
-    group_repo: GroupChatRepository = GroupChatRepository(session)
-    group_data: GroupData = extract_group_data(event)
-
-    # Создаем или обновляем группу с помощью upsert
-    group: GroupModel = await group_repo.create_or_update_group(
-        telegram_chat_id=group_data.chat_id,
-        title=group_data.title,
-        chat_type=group_data.chat_type,
-        added_by_telegram_id=group_data.added_by_telegram_id,
-        bot_status=group_data.bot_status,
-        admin_permissions=group_data.bot_permissions,
-        is_active=True,
+    group = await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
     )
 
     # Отправляем сообщение в зависимости от статуса бота
@@ -69,6 +51,7 @@ async def bot_added_to_group(
         await event.answer(text=i18n.get("bot-added-not-as-admin"))
     else:
         logger.warning(f"Bot added with unknown status: {event.new_chat_member.status}")
+        await event.answer(text=i18n.get("bot-added-not-as-admin"))
 
 
 # bot kicked from chat
@@ -77,28 +60,13 @@ async def bot_kicked_from_group(
         event: ChatMemberUpdated,
         session: AsyncSession,
 ) -> None:
-    user_repo = UserRepository(session)
-    from_user = event.from_user
-
-    user = await user_repo.create_or_update_user(
-        telegram_id=from_user.id,
-        username=from_user.username,
-        first_name=from_user.first_name,
-        last_name=from_user.last_name,
-        language_code=from_user.language_code or "en",
-        is_active=False,
+    await update_or_create_user_in_groups(
+        event=event,
+        session=session,
     )
-    group_data: GroupData = extract_group_data(event)
-
-    group_repo = GroupChatRepository(session)
-    await group_repo.create_or_update_group(
-        telegram_chat_id=group_data.chat_id,
-        title=group_data.title,
-        chat_type=group_data.chat_type,
-        added_by_telegram_id=group_data.added_by_telegram_id,
-        bot_status=group_data.bot_status,
-        admin_permissions=group_data.bot_permissions,
-        is_active=False,
+    await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
     )
 
 
@@ -110,11 +78,90 @@ async def group_to_supergroup_migration(
     print("Произошла миграция", message)
 
 
+# bot get admin rights
+@groups_router.my_chat_member(
+    ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) >> IS_ADMIN)
+)
+async def bot_admin_promoted(
+        event: ChatMemberUpdated,
+        bot: Bot,
+        i18n: TranslatorRunner,
+        session: AsyncSession,
+) -> None:
+    await event.answer(text=i18n.get("bot-get-admin-rights"))
+
+    await update_or_create_user_in_groups(
+        event=event,
+        session=session,
+    )
+
+    group = await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
+    )
+
+    try:
+        await sync_group_admins(
+            bot=bot,
+            telegram_chat_id=event.chat.id,
+            session=session,
+            group_id=group.id,
+        )
+        await event.answer(text=i18n.get("bot-update-admin-list"))
+    except Exception as e:
+        await event.answer(text=str(e))
+
+
+# bot lost admin rights
+@groups_router.my_chat_member(
+    ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) << IS_ADMIN)
+)
+async def bot_admin_demoted(
+        event: ChatMemberUpdated,
+        session: AsyncSession,
+        i18n: TranslatorRunner,
+) -> None:
+    await event.answer(text=i18n.get("bot-lost-admin-rights"))
+
+    await update_or_create_user_in_groups(
+        event=event,
+        session=session,
+    )
+
+    await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
+    )
+
+
+######### User admins in groups
 # user get admin rights
 @groups_router.chat_member(
     ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) >> IS_ADMIN)
 )
-async def user_admin_promoted(event: ChatMemberUpdated) -> None:
+async def user_admin_promoted(
+        event: ChatMemberUpdated,
+        session: AsyncSession,
+) -> None:
+    user = await update_or_create_user_in_groups(
+        event=event,
+        session=session,
+    )
+
+    # Обновляем данные группы
+    group = await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
+    )
+
+    # Добавляем пользователя как администратора
+    await update_single_group_admin(
+        user_id=user.id,
+        group_id=group.id,
+        admin_permissions=event.new_chat_member,
+        is_active=True,
+        session=session,
+    )
     await event.answer(
         f"{event.new_chat_member.user.first_name} "
         f"был(а) повышен(а) до Администратора! В обработке юзера"
@@ -125,30 +172,32 @@ async def user_admin_promoted(event: ChatMemberUpdated) -> None:
 @groups_router.chat_member(
     ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) << IS_ADMIN)
 )
-async def user_admin_demoted(event: ChatMemberUpdated) -> None:
-    await event.answer(
-        f"{event.new_chat_member.user.first_name} "
-        f"был(а) понижен(а) до обычного юзера! В обработке юзера"
+async def user_admin_demoted(
+        event: ChatMemberUpdated,
+        session: AsyncSession
+) -> None:
+    # Обновляем данные пользователя
+    user = await update_or_create_user_in_groups(
+        event=event,
+        session=session,
     )
 
-
-# bot get admin rights
-@groups_router.my_chat_member(
-    ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) >> IS_ADMIN)
-)
-async def bot_admin_promoted(event: ChatMemberUpdated) -> None:
-    await event.answer(
-        f"{event.new_chat_member.user.first_name} "
-        f"был(а) повышен(а) до Администратора! В обработке бота"
+    # Обновляем данные группы
+    group = await update_or_create_group_in_groups_events(
+        event=event,
+        session=session,
     )
 
+    # Убираем пользователя из администраторов
+    await update_single_group_admin(
+        user_id=user.id,
+        group_id=group.id,
+        admin_permissions={},
+        is_active=False,
+        session=session,
+    )
 
-# bot lost admin rights
-@groups_router.my_chat_member(
-    ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) << IS_ADMIN)
-)
-async def bot_admin_demoted(event: ChatMemberUpdated) -> None:
     await event.answer(
         f"{event.new_chat_member.user.first_name} "
-        f"был(а) понижен(а) до обычного юзера! В обработке бота"
+        f"был(а) понижен(а) до обычного юзера!"
     )

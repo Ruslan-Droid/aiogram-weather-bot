@@ -85,9 +85,18 @@ class GroupModel(Base):
         BigInteger,
         ForeignKey("users.telegram_id", ondelete="SET NULL")
     )
+    language_code: Mapped[str | None] = mapped_column(String(10), default="en")
     bot_status: Mapped[str] = mapped_column(String(20))  # member, administrator, restricted, left, kicked
     admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    daily_group_tasks: Mapped[list["DailyGroupTaskModel"]] = relationship(
+        "DailyGroupTaskModel",
+        back_populates="group",
+        cascade="all, delete-orphan",
+        uselist=True,
+        lazy="select"
+    )
 
     admin_user_associations: Mapped[list["GroupAdminModel"]] = relationship(
         "GroupAdminModel",
@@ -100,6 +109,21 @@ class GroupModel(Base):
     @property
     def admins(self) -> list["UserModel"]:
         return [assoc.user for assoc in self.admin_user_associations if assoc.is_active]
+
+
+class DailyGroupTaskModel(Base):
+    __tablename__ = "group_daily_tasks"
+
+    group_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("groups.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False)
+    notifications_enabled: Mapped[bool] = mapped_column(default=False)
+    notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
+    taskiq_task_id: Mapped[str | None] = mapped_column(String(100))
+
+    group: Mapped["GroupModel"] = relationship("GroupModel", back_populates="daily_group_tasks")
 
 
 class GroupAdminModel(Base):
