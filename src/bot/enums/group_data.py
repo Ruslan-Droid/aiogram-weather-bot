@@ -36,7 +36,7 @@ class AdminData(BaseModel):
     username: str | None = None
     first_name: str | None = None
     last_name: str | None = None
-    language_code: str | None = None
+    language_code: str | None = "en"
     permissions: dict | None = None
     is_active: bool = True
     role: UserRole = UserRole.USER
@@ -107,11 +107,12 @@ def extract_group_data(event: ChatMemberUpdated) -> GroupData:
 def extract_admin_data(
         admin: ChatMemberAdministrator | ChatMemberOwner
 ) -> AdminData:
+    language = admin.user.language_code if admin.user.language_code else "en"
     return AdminData(
         telegram_id=admin.user.id,
         username=admin.user.username,
         first_name=admin.user.first_name,
         last_name=admin.user.last_name,
-        language_code=admin.user.language_code,
+        language_code=language,
         permissions=_extract_user_admin_permissions(admin)
     )
