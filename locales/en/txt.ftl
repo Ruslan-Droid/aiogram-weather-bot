@@ -33,7 +33,7 @@ start-change-city =
     London
 
 city-found-successfully =
-    Your city was successfully found and changed:  <b>{ $city_name }</b> ✅
+    Your city was successfully found:  <b>{ $city_name }</b> ✅
 
     Full address:
     { $city_info }
@@ -114,5 +114,7 @@ bot-added-as-admin =
     It will now be able to send daily weather reports.
 
     To enable it and set the time, go to the main chat with the bot.
+
+    Group settings are only available to the group <b>administrator</b> ❗️❗️
 
 bot-added-not-as-admin = To allow the bot to send daily weather, add administrator rights to it.

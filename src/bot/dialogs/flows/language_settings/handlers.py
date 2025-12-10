@@ -56,8 +56,7 @@ async def update_user_lang(
         ),
     )
 
-    task_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
-        telegram_id=user_row.telegram_id)
+    task_settings: DailyUserTaskModel = user_row.daily_task
 
     # update task with new city if notification enabled
     if task_settings.notifications_enabled:

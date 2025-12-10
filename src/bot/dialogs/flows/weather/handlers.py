@@ -158,8 +158,7 @@ async def time_handler(
             user_repo: UserRepository = UserRepository(session)
             await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
 
-            task_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
-                telegram_id=user.telegram_id)
+            task_settings: DailyUserTaskModel = user.daily_task
 
             # update task with new time if notification enabled
             if task_settings.notifications_enabled:
@@ -260,8 +259,7 @@ async def save_city_on_click(
 
     await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
 
-    task_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
-        telegram_id=user.telegram_id)
+    task_settings: DailyUserTaskModel = user.daily_task
 
     # update task with new city if notification enabled
     if task_settings.notifications_enabled:
@@ -297,8 +295,7 @@ async def weather_notification_clicked(
     user_repo: UserRepository = UserRepository(session)
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
 
-    user_notification_settings: DailyUserTaskModel = await user_repo.get_user_notification_settings(
-        telegram_id=user.telegram_id)
+    user_notification_settings: DailyUserTaskModel = user.daily_task
 
     if not user_notification_settings.notifications_enabled:
 
@@ -327,6 +324,6 @@ async def weather_notification_clicked(
     else:
         await callback.answer(text=i18n.get("on-notification-button"),
                               show_alert=True)
-        await redis_source.delete_schedule(user.user_schedule_task.taskiq_task_id)
+        await redis_source.delete_schedule(user.daily_task.taskiq_task_id)
         await user_repo.disable_notification_settings_and_remove_task_id(
             telegram_id=user.telegram_id)

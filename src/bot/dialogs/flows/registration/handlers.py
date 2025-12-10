@@ -27,7 +27,7 @@ async def location_handler(
     user: UserModel = dialog_manager.middleware_data.get("user_row")
 
     user_rep: UserRepository = UserRepository(session)
-    task_settings: DailyUserTaskModel = await user_rep.get_user_notification_settings(telegram_id=user.telegram_id)
+    task_settings: DailyUserTaskModel = user.daily_task
 
     await user_rep.update_users_coordinates(
         telegram_id=message.from_user.id,

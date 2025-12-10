@@ -1,13 +1,14 @@
 import logging
-from typing import Any
+from typing import Any, Coroutine, Sequence
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, Row, RowMapping, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel
+from src.bot.enums.group_data import AdminData
+from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel, GroupAdminModel
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +42,6 @@ class UserRepository:
             is_active: bool = True,
             role: UserRole = UserRole.USER,
     ) -> UserModel:
-        new_user = UserModel(
-            telegram_id=telegram_id,
-            username=username,
-            first_name=first_name,
-            last_name=last_name,
-            language_code=language_code,
-            role=role,
-            is_active=is_active,
-        )
         insert_stmt = pg_insert(UserModel).values(
             telegram_id=telegram_id,
             username=username,
@@ -67,16 +59,14 @@ class UserRepository:
             'last_name': last_name,
             'language_code': language_code,
             'is_active': is_active,
+            "role": role,
         }
-
-        # Only update role if it's explicitly provided (not default)
-        if role != UserRole.USER:
-            update_dict['role'] = role
 
         on_conflict_stmt = insert_stmt.on_conflict_do_update(
             index_elements=['telegram_id'],
             set_=update_dict
         ).returning(UserModel)
+
         try:
             # Execute the upsert
             result = await self.session.execute(on_conflict_stmt)
@@ -86,6 +76,7 @@ class UserRepository:
             stmt = select(DailyUserTaskModel).filter(
                 DailyUserTaskModel.user_id == user.id
             )
+
             daily_task = await self.session.scalar(stmt)
 
             if not daily_task:
@@ -322,12 +313,68 @@ class UserRepository:
             logger.error("Error getting user settings by telegram id %s: %s", telegram_id, e)
             raise
 
+    async def bulk_create_or_update_admins(
+            self,
+            users_data: list[AdminData]
+    ) -> list[Any] | Sequence[UserModel]:
+
+        if not users_data:
+            return []
+
+        values = []
+        for user_data in users_data:
+            user_dict = user_data.model_dump(exclude={'permissions'})
+            values.append(user_dict)
+
+        insert_stmt = pg_insert(UserModel).values(values)
+
+        update_dict = {
+            'username': insert_stmt.excluded.username,
+            'first_name': insert_stmt.excluded.first_name,
+            'last_name': insert_stmt.excluded.last_name,
+            'language_code': insert_stmt.excluded.language_code,
+            'is_active': insert_stmt.excluded.is_active,
+            'role': insert_stmt.excluded.role
+        }
+
+        on_conflict_stmt = insert_stmt.on_conflict_do_update(
+            index_elements=['telegram_id'],
+            set_=update_dict
+        ).returning(UserModel)
+
+        try:
+            result = await self.session.execute(on_conflict_stmt)
+            users = result.scalars().all()
+            print("data base function", users)
+            user_ids = [user.id for user in users]
+
+            # Проверяем, у каких пользователей уже есть DailyUserTaskModel
+            stmt = select(DailyUserTaskModel.user_id).where(
+                DailyUserTaskModel.user_id.in_(user_ids)
+            )
+            existing_task_user_ids = set(await self.session.scalars(stmt))
+
+            # Создаем DailyUserTaskModel для тех, у кого его нет
+            for user in users:
+                if user.id not in existing_task_user_ids:
+                    daily_task = DailyUserTaskModel(user_id=user.id)
+                    self.session.add(daily_task)
+
+            await self.session.commit()
+            logger.info("Bulk created/updated %s users", len(users))
+            return users
+
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error bulk creating/updating users: %s", str(e))
+            raise
+
 
 class GroupChatRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_new_group(
+    async def create_or_update_group(
             self,
             chat_id: int,
             title: str | None,
@@ -337,7 +384,7 @@ class GroupChatRepository:
             admin_permissions: dict | None,
             is_active: bool = True,
     ) -> GroupModel:
-        new_group = GroupModel(
+        insert_stmt = pg_insert(GroupModel).values(
             group_telegram_id=chat_id,
             title=title,
             chat_type=chat_type,
@@ -346,30 +393,30 @@ class GroupChatRepository:
             admin_permissions=admin_permissions,
             is_active=is_active,
         )
+
+        update_dict = {
+            'title': title,
+            'chat_type': chat_type,
+            'bot_status': bot_status,
+            'admin_permissions': admin_permissions,
+            'is_active': is_active,
+        }
+
+        on_conflict_stmt = insert_stmt.on_conflict_do_update(
+            index_elements=['group_telegram_id'],
+            set_=update_dict
+        ).returning(GroupModel)
+
         try:
-            self.session.add(new_group)
+            result = await self.session.execute(on_conflict_stmt)
+            group = result.scalar_one()
             await self.session.commit()
-            await self.session.refresh(new_group)
-            logger.info("Created new new group with chat id: %s", chat_id)
-            return new_group
-        except IntegrityError:
-            logger.error("Error creating new group with chat id: %s, group already exists", chat_id)
-            await self.session.rollback()
-            existing_group = await self.get_group_by_chat_id(chat_id)
-            if existing_group:
-                existing_group.group_telegram_id = chat_id
-                existing_group.title = title
-                existing_group.chat_type = chat_type
-                existing_group.bot_status = bot_status
-                existing_group.admin_permissions = admin_permissions
-                existing_group.is_active = is_active
-                await self.session.commit()
-                logger.info("Updated existing group with chat id: %s", chat_id)
-                return existing_group
-            raise
+            logger.info("Created/Updated group with chat id: %s", chat_id)
+            return group
+
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error creating group by chat id: %s, error: %s", chat_id, str(e))
+            logger.error("Error creating/updating group by chat id: %s, error: %s", chat_id, str(e))
             raise
 
     async def get_group_by_chat_id(
@@ -407,4 +454,56 @@ class GroupChatRepository:
         except Exception as e:
             await self.session.rollback()
             logger.error("Error updating is_active status for group id: %s error: %s", chat_id, str(e))
+            raise
+
+    async def update_group_admins(
+            self,
+            group_id: int,
+            admins_data: list[dict[str, Any]]
+    ) -> None:
+        try:
+            # Собираем user_id из новых данных
+            new_admin_user_ids = {admin['user_id'] for admin in admins_data} if admins_data else set()
+
+            # 1. Делаем upsert для текущих администраторов
+            if admins_data:
+                values = []
+                for admin_data in admins_data:
+                    values.append({
+                        'user_id': admin_data['user_id'],
+                        'group_id': group_id,
+                        'admin_permissions': admin_data.get('admin_permissions'),
+                        'is_active': True,
+                    })
+
+                insert_stmt = pg_insert(GroupAdminModel).values(values)
+
+                on_conflict_stmt = insert_stmt.on_conflict_do_update(
+                    index_elements=['user_id', 'group_id'],
+                    set_={
+                        'admin_permissions': insert_stmt.excluded.admin_permissions,
+                        'is_active': True,
+                    }
+                )
+                await self.session.execute(on_conflict_stmt)
+
+            # 2. Деактивируем администраторов, которых нет в новом списке
+            # Находим всех активных администраторов этой группы
+            stmt = select(GroupAdminModel).where(
+                GroupAdminModel.group_id == group_id,
+                GroupAdminModel.is_active == True
+            )
+            admins_in_db = await self.session.scalars(stmt)
+
+            for admin in admins_in_db:
+                if admin.user_id not in new_admin_user_ids:
+                    admin.is_active = False
+
+            await self.session.commit()
+            logger.info(f"Updated admins for group: %s."
+                        f"Active admins: %s", group_id, len(new_admin_user_ids))
+
+        except Exception as e:
+            await self.session.rollback()
+            logger.error(f"Error updating admins for group: %s error: %s", group_id, str(e))
             raise
