@@ -5,6 +5,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel
 
@@ -30,7 +31,7 @@ class UserRepository:
             logger.error("Error getting user by telegram id %s: %s", telegram_id, str(e))
             raise
 
-    async def create_new_user(
+    async def create_or_update_user(
             self,
             telegram_id: int,
             username: str | None,
@@ -49,34 +50,55 @@ class UserRepository:
             role=role,
             is_active=is_active,
         )
+        insert_stmt = pg_insert(UserModel).values(
+            telegram_id=telegram_id,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            language_code=language_code,
+            role=role,
+            is_active=is_active,
+        )
+
+        # Define what to update on conflict
+        update_dict = {
+            'username': username,
+            'first_name': first_name,
+            'last_name': last_name,
+            'language_code': language_code,
+            'is_active': is_active,
+        }
+
+        # Only update role if it's explicitly provided (not default)
+        if role != UserRole.USER:
+            update_dict['role'] = role
+
+        on_conflict_stmt = insert_stmt.on_conflict_do_update(
+            index_elements=['telegram_id'],
+            set_=update_dict
+        ).returning(UserModel)
         try:
-            self.session.add(new_user)
-            await self.session.flush()
+            # Execute the upsert
+            result = await self.session.execute(on_conflict_stmt)
+            user = result.scalar_one()
 
-            daily_task = DailyUserTaskModel(user_id=new_user.id)
-            self.session.add(daily_task)
+            # Check if user has DailyUserTaskModel, create if not exists
+            stmt = select(DailyUserTaskModel).filter(
+                DailyUserTaskModel.user_id == user.id
+            )
+            daily_task = await self.session.scalar(stmt)
 
-            await self.session.commit()
-            await self.session.refresh(new_user)
-            logger.info("Created new user with telegram id: %s", telegram_id)
-            return new_user
-        except IntegrityError:
-            logger.error("Error creating new user with telegram id: %s", telegram_id)
-            await self.session.rollback()
-            existing_user = await self.get_user_by_telegram_id(telegram_id)
-            if existing_user:
-                existing_user.username = username
-                existing_user.first_name = first_name
-                existing_user.last_name = last_name
-                existing_user.language_code = language_code
-                existing_user.is_active = is_active
+            if not daily_task:
+                daily_task = DailyUserTaskModel(user_id=user.id)
+                self.session.add(daily_task)
                 await self.session.commit()
-                logger.info("Updated existing user with telegram id: %s", telegram_id)
-                return existing_user
-            raise
+
+            logger.info("Created/Updated user with telegram id: %s", telegram_id)
+            return user
+
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error creating user by telegram id: %s, error: %s", telegram_id, str(e))
+            logger.error("Error creating/updating user by telegram id: %s, error: %s", telegram_id, str(e))
             raise
 
     async def update_users_coordinates(

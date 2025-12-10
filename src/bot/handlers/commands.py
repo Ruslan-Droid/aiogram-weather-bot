@@ -33,7 +33,7 @@ async def command_start_handler(
 ) -> None:
     if user_row is None:
         user_rep: UserRepository = UserRepository(session)
-        user_row: UserModel = await user_rep.create_new_user(
+        user_row: UserModel = await user_rep.create_or_update_user(
             telegram_id=message.from_user.id,
             username=message.from_user.username,
             first_name=message.from_user.first_name,
@@ -51,7 +51,7 @@ async def command_start_handler(
     if (user_row.latitude is None or user_row.longitude is None) and user_row.city is None:
         await dialog_manager.start(state=StartRegistrationSG.start_registration, mode=StartMode.RESET_STACK)
     else:
-        await  redis_source.delete_schedule(user_row.user_schedule_task.taskiq_task_id)
+        await  redis_source.delete_schedule(user_row.daily_task.taskiq_task_id)
         user_rep: UserRepository = UserRepository(session)
         await user_rep.disable_notification_settings_and_remove_task_id(user_row.telegram_id)
         await dialog_manager.start(state=WeatherSG.weather_main_menu, mode=StartMode.RESET_STACK)
