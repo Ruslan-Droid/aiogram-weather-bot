@@ -9,8 +9,8 @@ from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
 from src.bot.enums.group_data import GroupData, extract_group_data
-from src.bot.services.group_functions import process_group_admins
-from src.infrastructure.database.dao import GroupChatRepository
+from src.bot.services.group_admin_service import sync_group_admins
+from src.infrastructure.database.dao import GroupChatRepository, UserRepository
 from src.infrastructure.database.models import GroupModel
 
 logger = logging.getLogger(__name__)
@@ -28,14 +28,24 @@ async def bot_added_to_group(
         i18n: TranslatorRunner,
         session: AsyncSession,
 ) -> None:
-    group_repo: GroupChatRepository = GroupChatRepository(session)
+    user_repo = UserRepository(session)
+    from_user = event.from_user
 
-    # Подготавливаем данные для группы
+    user = await user_repo.create_or_update_user(
+        telegram_id=from_user.id,
+        username=from_user.username,
+        first_name=from_user.first_name,
+        last_name=from_user.last_name,
+        language_code=from_user.language_code or "en",
+        is_active=False,
+    )
+
+    group_repo: GroupChatRepository = GroupChatRepository(session)
     group_data: GroupData = extract_group_data(event)
 
     # Создаем или обновляем группу с помощью upsert
     group: GroupModel = await group_repo.create_or_update_group(
-        chat_id=group_data.chat_id,
+        telegram_chat_id=group_data.chat_id,
         title=group_data.title,
         chat_type=group_data.chat_type,
         added_by_telegram_id=group_data.added_by_telegram_id,
@@ -49,13 +59,12 @@ async def bot_added_to_group(
         await event.answer(text=i18n.get("bot-added-as-admin"))
 
         # Запускаем обновление админов
-        await process_group_admins(
+        await sync_group_admins(
             bot=bot,
-            chat_id=event.chat.id,
+            telegram_chat_id=event.chat.id,
             session=session,
-            group_id=group.id
+            group_id=group.id,
         )
-
     elif event.new_chat_member.status in ["member", "restricted"]:
         await event.answer(text=i18n.get("bot-added-not-as-admin"))
     else:
@@ -68,11 +77,22 @@ async def bot_kicked_from_group(
         event: ChatMemberUpdated,
         session: AsyncSession,
 ) -> None:
+    user_repo = UserRepository(session)
+    from_user = event.from_user
+
+    user = await user_repo.create_or_update_user(
+        telegram_id=from_user.id,
+        username=from_user.username,
+        first_name=from_user.first_name,
+        last_name=from_user.last_name,
+        language_code=from_user.language_code or "en",
+        is_active=False,
+    )
     group_data: GroupData = extract_group_data(event)
 
     group_repo = GroupChatRepository(session)
     await group_repo.create_or_update_group(
-        chat_id=group_data.chat_id,
+        telegram_chat_id=group_data.chat_id,
         title=group_data.title,
         chat_type=group_data.chat_type,
         added_by_telegram_id=group_data.added_by_telegram_id,

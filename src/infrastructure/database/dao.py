@@ -1,8 +1,7 @@
 import logging
-from typing import Any, Coroutine, Sequence
+from typing import Any, Sequence
 
-from sqlalchemy import select, update, Row, RowMapping, and_
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -58,7 +57,6 @@ class UserRepository:
             'first_name': first_name,
             'last_name': last_name,
             'language_code': language_code,
-            'is_active': is_active,
             "role": role,
         }
 
@@ -367,6 +365,20 @@ class UserRepository:
             logger.error("Error bulk creating/updating users: %s", str(e))
             raise
 
+    async def get_users_by_telegram_ids(
+            self,
+            telegram_ids: list[int]
+    ) -> dict[int, UserModel]:
+        try:
+            stmt = select(UserModel).filter(
+                UserModel.telegram_id.in_(telegram_ids)
+            )
+            users = await self.session.scalars(stmt)
+            return {user.telegram_id: user for user in users}
+        except Exception as e:
+            logger.error("Error getting users by ids: %s", str(e))
+            return {}
+
 
 class GroupChatRepository:
     def __init__(self, session: AsyncSession):
@@ -374,7 +386,7 @@ class GroupChatRepository:
 
     async def create_or_update_group(
             self,
-            chat_id: int,
+            telegram_chat_id: int,
             title: str | None,
             chat_type: str,
             added_by_telegram_id: int | None,
@@ -383,7 +395,7 @@ class GroupChatRepository:
             is_active: bool = True,
     ) -> GroupModel:
         insert_stmt = pg_insert(GroupModel).values(
-            group_telegram_id=chat_id,
+            group_telegram_id=telegram_chat_id,
             title=title,
             chat_type=chat_type,
             added_by_telegram_id=added_by_telegram_id,
@@ -409,12 +421,12 @@ class GroupChatRepository:
             result = await self.session.execute(on_conflict_stmt)
             group = result.scalar_one()
             await self.session.commit()
-            logger.info("Created/Updated group with chat id: %s", chat_id)
+            logger.info("Created/Updated group with chat id: %s", telegram_chat_id)
             return group
 
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error creating/updating group by chat id: %s, error: %s", chat_id, str(e))
+            logger.error("Error creating/updating group by chat id: %s, error: %s", telegram_chat_id, str(e))
             raise
 
     async def get_group_by_chat_id(

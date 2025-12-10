@@ -51,9 +51,9 @@ class GroupData(BaseModel):
 
 def _extract_user_admin_permissions(
         admin: ChatMemberAdministrator | ChatMemberOwner
-) -> dict | None:
+) -> dict:
     if isinstance(admin, ChatMemberOwner):
-        return None
+        return {"rights": "owner, all rights"}
 
     return UserPermissions(
         can_manage_chat=admin.can_manage_chat,
