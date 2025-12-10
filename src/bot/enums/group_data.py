@@ -38,8 +38,6 @@ class AdminData(BaseModel):
     last_name: str | None = None
     language_code: str | None = "en"
     permissions: dict | None = None
-    is_active: bool = True
-    role: UserRole = UserRole.USER
 
 
 class GroupData(BaseModel):

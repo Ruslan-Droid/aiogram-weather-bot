@@ -333,8 +333,6 @@ class UserRepository:
             'first_name': insert_stmt.excluded.first_name,
             'last_name': insert_stmt.excluded.last_name,
             'language_code': insert_stmt.excluded.language_code,
-            'is_active': insert_stmt.excluded.is_active,
-            'role': insert_stmt.excluded.role
         }
 
         on_conflict_stmt = insert_stmt.on_conflict_do_update(
