@@ -2,16 +2,16 @@ import logging
 from aiogram import Router, Bot, F
 from aiogram.filters import ChatMemberUpdatedFilter, JOIN_TRANSITION, LEAVE_TRANSITION, KICKED, LEFT, RESTRICTED, \
     MEMBER, IS_ADMIN
-from aiogram.types import ChatMemberUpdated, Message, ChatMemberAdministrator
+from aiogram.types import ChatMemberUpdated, Message
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
-from src.bot.enums.group_data import AdminData, GroupData, extract_group_data, extract_admin_data
+from src.bot.enums.group_data import GroupData, extract_group_data
 from src.bot.services.group_functions import process_group_admins
-from src.infrastructure.database.dao import GroupChatRepository, UserRepository
-from src.infrastructure.database.models import UserModel, GroupModel, UserRole
+from src.infrastructure.database.dao import GroupChatRepository
+from src.infrastructure.database.models import GroupModel
 
 logger = logging.getLogger(__name__)
 
