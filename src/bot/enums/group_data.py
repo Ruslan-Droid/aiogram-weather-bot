@@ -3,8 +3,6 @@ from pydantic import BaseModel
 from aiogram.types import ChatMemberAdministrator, ChatMemberUpdated, ChatMemberOwner
 from aiogram.enums import ChatMemberStatus, ChatType
 
-from src.infrastructure.database.models import UserRole
-
 
 class BasePermissions(BaseModel):
     can_manage_chat: bool

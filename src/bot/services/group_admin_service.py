@@ -17,10 +17,10 @@ async def sync_group_admins(
         group_id: int,
 ) -> None:
     try:
-        # Получаем список администраторов
+        # get admins list
         admins = await bot.get_chat_administrators(telegram_chat_id)
 
-        # Извлекаем данные администраторов
+        # get admins data
         admin_data_list: list[AdminData] = []
 
         for admin in admins:
@@ -28,14 +28,14 @@ async def sync_group_admins(
                 admin_data = extract_admin_data(admin)
                 admin_data_list.append(admin_data)
 
-        # Bulk операции
+        # Bulk operation
         user_repo = UserRepository(session)
         group_repo = GroupChatRepository(session)
 
-        # 1. Создаем/обновляем пользователей
+        # 1. create / update users
         users_dict = await user_repo.bulk_create_or_update_admins(admin_data_list)
 
-        # 2. Подготавливаем данные для связей
+        # 2. get data for relationships
         group_admins_data = []
         for admin_data, user in zip(admin_data_list, users_dict):
             group_admins_data.append({
@@ -44,13 +44,13 @@ async def sync_group_admins(
                 'is_active': True
             })
 
-        # 3. Обновляем связи администраторов
+        # 3. update admins relationships
         await group_repo.update_group_admins(group_id, group_admins_data)
 
-        logger.info("Синхронизировано %s администраторов для группы %s", len(admin_data_list), telegram_chat_id)
+        logger.info("synchronise %s admins in group: %s", len(admin_data_list), telegram_chat_id)
 
     except Exception as e:
-        logger.error("Ошибка синхронизации администраторов для группы %s, error: %s ", telegram_chat_id, str(e))
+        logger.error("Error while synchronization in group %s, error: %s ", telegram_chat_id, str(e))
         raise
 
 
@@ -65,10 +65,11 @@ async def update_single_group_admin(
 
     if admin_permissions.status == "administrator" or admin_permissions.status == "creator":
         admin_permissions = extract_user_admin_permissions(admin_permissions)
+        logger.info("Get all admin permissions for user: %s", user_id)
     else:
         admin_permissions = None
+        logger.info("User: %s don't have admin permissions", user_id)
 
-    # Этот метод сам обработает активацию/деактивацию
     await group_repo.add_new_single_admin_or_update(
         user_id=user_id,
         group_id=group_id,
@@ -85,7 +86,7 @@ async def update_or_create_user_in_groups(
     from_user = event.new_chat_member.user
 
     if from_user.is_bot:
-        logger.info("dont create bot in DB")
+        logger.info("dont create bot in DB, bot id: %s", from_user.id)
         return None
 
     user = await user_repo.create_or_update_user(
