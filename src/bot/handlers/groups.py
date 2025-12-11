@@ -68,6 +68,7 @@ async def bot_kicked_from_group(
     await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        is_active=False
     )
 
 
@@ -195,7 +196,6 @@ async def user_admin_demoted(
         event=event,
         session=session,
     )
-
     # Убираем пользователя из администраторов
     await update_single_group_admin(
         user_id=user.id,

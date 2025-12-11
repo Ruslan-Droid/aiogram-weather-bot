@@ -522,7 +522,7 @@ class GroupChatRepository:
             self,
             user_id: int,
             group_id: int,
-            admin_permissions: dict[str, Any],
+            admin_permissions: dict[str, Any] | None,
             is_active: bool,
     ) -> None:
         try:
@@ -536,11 +536,12 @@ class GroupChatRepository:
             on_conflict_stmt = insert_stmt.on_conflict_do_update(
                 index_elements=['user_id', 'group_id'],
                 set_={
-                    'admin_permissions': insert_stmt.excluded.admin_permissions,
-                    'is_active': insert_stmt.excluded.is_active,
+                    'admin_permissions': admin_permissions,
+                    'is_active': is_active,
                 }
             )
             await self.session.execute(on_conflict_stmt)
+            await self.session.commit()
 
         except Exception as e:
             logger.error("can't add new admin, error: %s", str(e))

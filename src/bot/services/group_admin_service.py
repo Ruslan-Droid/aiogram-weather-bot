@@ -44,7 +44,6 @@ async def sync_group_admins(
                 'is_active': True
             })
 
-        print("group_admins_data", group_admins_data)
         # 3. Обновляем связи администраторов
         await group_repo.update_group_admins(group_id, group_admins_data)
 
@@ -64,7 +63,7 @@ async def update_single_group_admin(
 ) -> None:
     group_repo = GroupChatRepository(session)
 
-    if admin_permissions:
+    if admin_permissions.status == "administrator" or admin_permissions.status == "creator":
         admin_permissions = extract_user_admin_permissions(admin_permissions)
     else:
         admin_permissions = None
@@ -83,7 +82,11 @@ async def update_or_create_user_in_groups(
         session: AsyncSession,
 ) -> UserModel | None:
     user_repo = UserRepository(session)
-    from_user = event.from_user
+    from_user = event.new_chat_member.user
+
+    if from_user.is_bot:
+        logger.info("dont create bot in DB")
+        return None
 
     user = await user_repo.create_or_update_user(
         telegram_id=from_user.id,
@@ -99,6 +102,7 @@ async def update_or_create_user_in_groups(
 async def update_or_create_group_in_groups_events(
         event: ChatMemberUpdated,
         session: AsyncSession,
+        is_active: bool = True,
 ) -> GroupModel:
     group_data: GroupData = extract_group_data(event)
 
@@ -110,6 +114,6 @@ async def update_or_create_group_in_groups_events(
         added_by_telegram_id=group_data.added_by_telegram_id,
         bot_status=group_data.bot_status,
         admin_permissions=group_data.bot_permissions,
-        is_active=True
+        is_active=is_active
     )
     return group
