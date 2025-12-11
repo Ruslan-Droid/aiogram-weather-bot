@@ -131,3 +131,7 @@ bot-update-admin-list =
     The bot has successfully updated the list of current administrators.
 
     The administrator can private message the bot and configure it for this group.
+
+user-lost-admin-rights = { $name }, will no longer be able to configure the bot for this group.
+
+user-get-admin-rights = { $name }, can now configure a bot for this group.

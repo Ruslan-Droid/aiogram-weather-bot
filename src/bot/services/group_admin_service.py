@@ -3,7 +3,7 @@ from aiogram import Bot
 from aiogram.types import ChatMemberUpdated, ChatMemberUnion
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.bot.enums.group_data import AdminData, extract_admin_data, GroupData, extract_group_data, \
-    _extract_user_admin_permissions
+    extract_user_admin_permissions
 from src.infrastructure.database.dao import UserRepository, GroupChatRepository
 from src.infrastructure.database.models import UserModel, GroupModel
 
@@ -56,7 +56,7 @@ async def sync_group_admins(
 
 
 async def update_single_group_admin(
-        user_id: int,
+        user_id,
         group_id: int,
         is_active: bool,
         session: AsyncSession,
@@ -65,15 +65,17 @@ async def update_single_group_admin(
     group_repo = GroupChatRepository(session)
 
     if admin_permissions:
-        admin_permissions = _extract_user_admin_permissions(admin_permissions)
-
-    admins_data = [{
-        'user_id': user_id,
-        'admin_permissions': admin_permissions,
-    }]
+        admin_permissions = extract_user_admin_permissions(admin_permissions)
+    else:
+        admin_permissions = None
 
     # Этот метод сам обработает активацию/деактивацию
-    await
+    await group_repo.add_new_single_admin_or_update(
+        user_id=user_id,
+        group_id=group_id,
+        admin_permissions=admin_permissions,
+        is_active=is_active,
+    )
 
 
 async def update_or_create_user_in_groups(

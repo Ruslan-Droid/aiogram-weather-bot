@@ -49,7 +49,7 @@ class GroupData(BaseModel):
     bot_status: ChatMemberStatus
 
 
-def _extract_user_admin_permissions(
+def extract_user_admin_permissions(
         admin: ChatMemberAdministrator | ChatMemberOwner
 ) -> dict:
     if isinstance(admin, ChatMemberOwner):
@@ -112,5 +112,5 @@ def extract_admin_data(
         first_name=admin.user.first_name,
         last_name=admin.user.last_name,
         language_code=language,
-        permissions=_extract_user_admin_permissions(admin)
+        permissions=extract_user_admin_permissions(admin)
     )

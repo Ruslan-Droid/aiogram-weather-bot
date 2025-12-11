@@ -517,3 +517,51 @@ class GroupChatRepository:
             await self.session.rollback()
             logger.error(f"Error updating admins for group: %s error: %s", group_id, str(e))
             raise
+
+    async def add_new_single_admin_or_update(
+            self,
+            user_id: int,
+            group_id: int,
+            admin_permissions: dict[str, Any],
+            is_active: bool,
+    ) -> None:
+        try:
+            insert_stmt = pg_insert(GroupAdminModel).values(
+                user_id=user_id,
+                group_id=group_id,
+                admin_permissions=admin_permissions,
+                is_active=is_active
+            )
+
+            on_conflict_stmt = insert_stmt.on_conflict_do_update(
+                index_elements=['user_id', 'group_id'],
+                set_={
+                    'admin_permissions': insert_stmt.excluded.admin_permissions,
+                    'is_active': insert_stmt.excluded.is_active,
+                }
+            )
+            await self.session.execute(on_conflict_stmt)
+
+        except Exception as e:
+            logger.error("can't add new admin, error: %s", str(e))
+
+    async def update_chat_id_in_database(
+            self,
+            old_chat_id: int,
+            new_chat_id: int
+    ) -> None:
+        try:
+            await self.session.execute(
+                update(GroupModel)
+                .where(GroupModel.group_telegram_id == old_chat_id)
+                .values(
+                    group_telegram_id=new_chat_id,
+                    chat_type="supergroup"
+                )
+            )
+            await self.session.commit()
+            logger.info(f"Migration group: %s -> %s", old_chat_id, new_chat_id)
+
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error while migration group: %s -> %s, error: %s", old_chat_id, new_chat_id, str(e))

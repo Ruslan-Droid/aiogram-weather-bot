@@ -9,7 +9,8 @@ from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
 from src.bot.services.group_admin_service import sync_group_admins, update_or_create_user_in_groups, \
-    update_or_create_group_in_groups_events
+    update_or_create_group_in_groups_events, update_single_group_admin
+from src.infrastructure.database.dao import GroupChatRepository
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +75,15 @@ async def bot_kicked_from_group(
 @groups_router.message(F.migrate_to_chat_id)
 async def group_to_supergroup_migration(
         message: Message,
+        session: AsyncSession,
 ) -> None:
-    print("Произошла миграция", message)
+    group_repo = GroupChatRepository(session)
+
+    old_chat_id = message.chat.id
+    new_chat_id = message.migrate_to_chat_id
+    logger.warning("Migration in group: %s -> %s", old_chat_id, new_chat_id)
+
+    await group_repo.update_chat_id_in_database(old_chat_id, new_chat_id)
 
 
 # bot get admin rights
@@ -88,8 +96,6 @@ async def bot_admin_promoted(
         i18n: TranslatorRunner,
         session: AsyncSession,
 ) -> None:
-    await event.answer(text=i18n.get("bot-get-admin-rights"))
-
     await update_or_create_user_in_groups(
         event=event,
         session=session,
@@ -99,6 +105,7 @@ async def bot_admin_promoted(
         event=event,
         session=session,
     )
+    await event.answer(text=i18n.get("bot-get-admin-rights"))
 
     try:
         await sync_group_admins(
@@ -121,8 +128,6 @@ async def bot_admin_demoted(
         session: AsyncSession,
         i18n: TranslatorRunner,
 ) -> None:
-    await event.answer(text=i18n.get("bot-lost-admin-rights"))
-
     await update_or_create_user_in_groups(
         event=event,
         session=session,
@@ -133,8 +138,9 @@ async def bot_admin_demoted(
         session=session,
     )
 
+    await event.answer(text=i18n.get("bot-lost-admin-rights"))
 
-######### User admins in groups
+
 # user get admin rights
 @groups_router.chat_member(
     ChatMemberUpdatedFilter((KICKED | LEFT | RESTRICTED | MEMBER) >> IS_ADMIN)
@@ -142,6 +148,7 @@ async def bot_admin_demoted(
 async def user_admin_promoted(
         event: ChatMemberUpdated,
         session: AsyncSession,
+        i18n: TranslatorRunner,
 ) -> None:
     user = await update_or_create_user_in_groups(
         event=event,
@@ -162,9 +169,9 @@ async def user_admin_promoted(
         is_active=True,
         session=session,
     )
+
     await event.answer(
-        f"{event.new_chat_member.user.first_name} "
-        f"был(а) повышен(а) до Администратора! В обработке юзера"
+        text=i18n.get("user-get-admin-rights", name=event.from_user.first_name)
     )
 
 
@@ -174,7 +181,8 @@ async def user_admin_promoted(
 )
 async def user_admin_demoted(
         event: ChatMemberUpdated,
-        session: AsyncSession
+        session: AsyncSession,
+        i18n: TranslatorRunner,
 ) -> None:
     # Обновляем данные пользователя
     user = await update_or_create_user_in_groups(
@@ -192,12 +200,11 @@ async def user_admin_demoted(
     await update_single_group_admin(
         user_id=user.id,
         group_id=group.id,
-        admin_permissions={},
+        admin_permissions=event.new_chat_member,
         is_active=False,
         session=session,
     )
 
     await event.answer(
-        f"{event.new_chat_member.user.first_name} "
-        f"был(а) понижен(а) до обычного юзера!"
+        text=i18n.get("user-lost-admin-rights", name=event.from_user.first_name)
     )
