@@ -17,6 +17,7 @@ async def getter_weather_main_menu(
         "off_notification": i18n.get("off-notification-button"),
         "on_notification": i18n.get("on-notification-button"),
         "add_group_button": i18n.get("add-group-button"),
+        "group_settings": i18n.get("group-settings-button"),
     }
 
 
@@ -75,4 +76,13 @@ async def getter_weather_changing_city(
         "back_button": i18n.get("back-button"),
         "save_button": i18n.get("save-button"),
         "current_city": i18n.get("city-found-successfully", city_name=city_name, city_info=city_info),
+    }
+
+async def getter_weather_group_settiongs(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs):
+    return {
+        "group_settings_window": i18n.get("group-settings-window"),
+        "back_button": i18n.get("back-button"),
     }

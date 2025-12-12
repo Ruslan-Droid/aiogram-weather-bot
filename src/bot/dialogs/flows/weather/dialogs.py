@@ -3,14 +3,14 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url, ScrollingGroup
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
 from src.bot.dialogs.flows.weather.keyboards import (
-    MAIN_SETTINGS_BUTTON,
+    MAIN_SETTINGS_BUTTON, create_group_buttons,
 )
 from src.bot.dialogs.widgets.i18n import I18nFormat
 from src.bot.dialogs.flows.weather.states import WeatherSG
@@ -19,7 +19,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_settings,
     getter_weather_time_settings,
     getter_weather_city_settings,
-    getter_weather_changing_city,
+    getter_weather_changing_city, getter_weather_group_settiongs,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -36,7 +36,7 @@ from src.bot.dialogs.flows.weather.handlers import (
     wrong_city_handler,
     save_city_on_click,
     deny_city_on_click,
-    weather_notification_clicked,
+    weather_notification_clicked, go_to_group_settings_on_click, deny_choosing_group_on_click,
 )
 
 weather_dialog = Dialog(
@@ -69,10 +69,17 @@ weather_dialog = Dialog(
             id="main_settings_button",
             on_click=go_to_general_settings_on_click,
         ),
+        # button to add bot in group
         Url(
             text=Format("{add_group_button}"),
             url=Const("https://t.me/KLG_Weather_Bot?startgroup=newgroups&admin=manage_chat+delete_messages"),
             id="add_group_button",
+        ),
+        # button for group settings
+        Button(
+            text=Format("{group_settings}"),
+            id="group_settings_button",
+            on_click=go_to_group_settings_on_click,
         ),
         getter=getter_weather_main_menu,
         state=WeatherSG.weather_main_menu,
@@ -187,6 +194,23 @@ weather_dialog = Dialog(
         ),
         getter=getter_weather_changing_city,
         state=WeatherSG.weather_save_city,
+    ),
+    # Group settings menu
+    Window(
+        Format("{group_settings_window}"),
+        ScrollingGroup(
+            buttons=create_group_buttons(group_data={"title": "exmaple", "id": 1}),
+            id="groups",
+            width=1,
+            height=5,
+        ),
+        Button(
+            text=Format("{back_button}"),
+            id="group_settings_back_button",
+            on_click=deny_choosing_group_on_click),
+        getter=getter_weather_group_settiongs,
+        state=WeatherSG.weather_group_settings,
+
     ),
     name="weather_main_dialog",
 )

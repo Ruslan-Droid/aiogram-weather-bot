@@ -116,6 +116,13 @@ async def go_to_general_settings_on_click(
     await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
 
 
+async def go_to_group_settings_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    await dialog_manager.switch_to(state=WeatherSG.weather_group_settings)
+
+
 async def go_to_main_menu_on_click(
         callback: CallbackQuery,
         widget: Button,
@@ -283,6 +290,13 @@ async def deny_city_on_click(
         dialog_manager: DialogManager) -> None:
     dialog_manager.dialog_data.clear()
     await dialog_manager.switch_to(WeatherSG.weather_changing_city)
+
+
+async def deny_choosing_group_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager) -> None:
+    await dialog_manager.switch_to(WeatherSG.weather_main_menu)
 
 
 async def weather_notification_clicked(

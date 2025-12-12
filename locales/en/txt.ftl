@@ -74,6 +74,7 @@ weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
 add-group-button = 👥 Add bot to a group
+group-settings-button = 👥⚙️ Bot settings in a group
 language-settings-button = 🌎 Change language
 settings-change-time-notification-button = ⏰ Change notification time
 coords-settings-button = 🗺 Change coords
@@ -135,3 +136,9 @@ bot-update-admin-list =
 user-lost-admin-rights = { $name }, will no longer be able to configure the bot for this group.
 
 user-get-admin-rights = { $name }, can now configure a bot for this group.
+
+
+group-settings-window =
+    Select the group you want to configure.
+
+    Only the group administrator can configure and add a bot to a group.

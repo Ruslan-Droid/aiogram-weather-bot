@@ -28,7 +28,7 @@ class UserModel(Base):
     is_active: Mapped[bool] = mapped_column(default=True)
     is_banned: Mapped[bool] = mapped_column(default=False)
     # Timezone region name (e.g., 'Europe/Moscow')
-    tz_region: Mapped[str | None] = mapped_column(String(50))
+    tz_region: Mapped[str | None] = mapped_column(String(50), default="Europe/Moscow")
 
     latitude: Mapped[float | None] = mapped_column(Float)
     longitude: Mapped[float | None] = mapped_column(Float)

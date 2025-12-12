@@ -74,6 +74,7 @@ weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
 add-group-button = 👥 Добавить бота в группу
+group-settings-button = 👥⚙️ Настроить бота в группе
 language-settings-button = 🌎 Настроить язык
 settings-change-time-notification-button = ⏰ Изменить время уведомлений
 coords-settings-button = 🗺 Изменить координаты
@@ -136,3 +137,9 @@ bot-update-admin-list =
 user-lost-admin-rights = { $name }, больше не сможет настраивать бота для этой группы.
 
 user-lost-admin-rights = { $name }, теперь может настраивать бота для этой группы.
+
+
+group-settings-window =
+    Выберите группу которую хотите настроить.
+
+    Настраивать и добавлять бота в группу может только администратор этой группы.
