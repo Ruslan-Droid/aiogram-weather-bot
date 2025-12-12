@@ -29,8 +29,9 @@ def parse_weather(weather_data: Dict[str, Any], i18n: TranslatorRunner) -> str:
             forecast_day = forecast['forecastday'][0]["date"]
 
             weather_message = (
-                f"<b>{city}, {country}</b>\n\n"
                 f"<b>{i18n.get("parsing-weather-forecast-day")}:</b>  <code>{forecast_day}</code>\n"
+                
+                f"<b>{city}, {country}</b>\n\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n\n"
             )
             weather_message += _forecast_formatting_by_hours(forecast, i18n=i18n)
