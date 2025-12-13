@@ -142,3 +142,5 @@ group-settings-window =
     Select the group you want to configure.
 
     Only the group administrator can configure and add a bot to a group.
+
+no-groups = No groups

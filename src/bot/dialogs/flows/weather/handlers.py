@@ -341,3 +341,35 @@ async def weather_notification_clicked(
         await redis_source.delete_schedule(user.daily_task.taskiq_task_id)
         await user_repo.disable_notification_settings_and_remove_task_id(
             telegram_id=user.telegram_id)
+
+
+async def group_click_handler(
+        callback: CallbackQuery,
+        button: Button,
+        dialog_manager: DialogManager
+):
+
+    # Получаем ID кнопки
+    button_id = button.widget_id
+
+    if button_id == "no_groups":
+        await callback.answer("У вас нет доступных групп", show_alert=True)
+        return
+
+    if button_id.startswith("group_"):
+        try:
+            group_id = button_id.split("_")[1]
+        except IndexError:
+            await callback.answer("Ошибка обработки группы", show_alert=True)
+            return
+
+        # Сохраняем ID выбранной группы
+        dialog_manager.dialog_data["selected_group_id"] = group_id
+
+        # Переходим в окно редактирования группы
+        # await dialog_manager.switch_to(WeatherSG)
+
+        # Можно показать уведомление
+        await callback.answer(f"Группа #{group_id} выбрана")
+    else:
+        await callback.answer(f"Нажата кнопка: {button_id}")

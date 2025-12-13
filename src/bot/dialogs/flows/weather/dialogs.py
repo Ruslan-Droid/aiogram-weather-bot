@@ -3,14 +3,14 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url, ScrollingGroup
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format, Const
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
 from src.bot.dialogs.flows.weather.keyboards import (
-    MAIN_SETTINGS_BUTTON, create_group_buttons,
+    MAIN_SETTINGS_BUTTON,
 )
 from src.bot.dialogs.widgets.i18n import I18nFormat
 from src.bot.dialogs.flows.weather.states import WeatherSG
@@ -19,7 +19,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_settings,
     getter_weather_time_settings,
     getter_weather_city_settings,
-    getter_weather_changing_city, getter_weather_group_settiongs,
+    getter_weather_changing_city, getter_weather_group_settings,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -36,8 +36,9 @@ from src.bot.dialogs.flows.weather.handlers import (
     wrong_city_handler,
     save_city_on_click,
     deny_city_on_click,
-    weather_notification_clicked, go_to_group_settings_on_click, deny_choosing_group_on_click,
+    weather_notification_clicked, go_to_group_settings_on_click, deny_choosing_group_on_click, group_click_handler,
 )
+from src.bot.dialogs.widgets.scroll_widget import DynamicScrollingGroup
 
 weather_dialog = Dialog(
     # Main weather menu
@@ -198,17 +199,15 @@ weather_dialog = Dialog(
     # Group settings menu
     Window(
         Format("{group_settings_window}"),
-        ScrollingGroup(
-            buttons=create_group_buttons(group_data={"title": "exmaple", "id": 1}),
-            id="groups",
-            width=1,
-            height=5,
+        DynamicScrollingGroup.create(
+            groups_data=Format({"groups_data"}),
+            on_click_handler=group_click_handler,
         ),
         Button(
             text=Format("{back_button}"),
             id="group_settings_back_button",
             on_click=deny_choosing_group_on_click),
-        getter=getter_weather_group_settiongs,
+        getter=getter_weather_group_settings,
         state=WeatherSG.weather_group_settings,
 
     ),

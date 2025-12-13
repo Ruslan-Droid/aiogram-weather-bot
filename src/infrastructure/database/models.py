@@ -49,10 +49,12 @@ class UserModel(Base):
         lazy="select"
     )
 
-    # Свойство для удобного доступа к группам пользователя
     @property
     def admin_groups(self) -> list["GroupModel"]:
-        return [assoc.group for assoc in self.admin_group_associations if assoc.is_active]
+        return [
+            assoc.group for assoc in self.admin_group_associations
+            if assoc.is_active and assoc.group.is_active
+        ]
 
 
 class DailyUserTaskModel(Base):
@@ -105,7 +107,6 @@ class GroupModel(Base):
         lazy="selectin"
     )
 
-    # Свойство для удобного доступа к админам группы
     @property
     def admins(self) -> list["UserModel"]:
         return [assoc.user for assoc in self.admin_user_associations if assoc.is_active]

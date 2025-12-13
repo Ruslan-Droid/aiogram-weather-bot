@@ -379,6 +379,42 @@ class UserRepository:
             logger.error("Error getting users by ids: %s", str(e))
             return {}
 
+    async def get_active_admin_groups_by_telegram_id(
+            self,
+            telegram_id: int,
+
+    ) -> list[GroupModel]:
+        try:
+            stmt = (
+                select(UserModel)
+                .options(
+                    joinedload(UserModel.admin_group_associations)
+                    .joinedload(GroupAdminModel.group)
+                )
+                .where(UserModel.telegram_id == telegram_id)
+            )
+
+            user = await self.session.scalar(stmt)
+
+            if not user:
+                logger.warning("User not found by telegram id: %s", telegram_id)
+                return []
+
+            groups = user.admin_groups
+
+            logger.info(
+                "Found %s active admin groups for telegram_id: %s",
+                len(groups), telegram_id
+            )
+            return groups
+
+        except Exception as e:
+            logger.error(
+                "Error getting active admin groups for telegram_id %s: %s",
+                telegram_id, str(e)
+            )
+            raise
+
 
 class GroupChatRepository:
     def __init__(self, session: AsyncSession):
