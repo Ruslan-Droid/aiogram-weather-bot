@@ -3,7 +3,7 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url, ScrollingGroup, Select
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format, Const
@@ -38,7 +38,6 @@ from src.bot.dialogs.flows.weather.handlers import (
     deny_city_on_click,
     weather_notification_clicked, go_to_group_settings_on_click, deny_choosing_group_on_click, group_click_handler,
 )
-from src.bot.dialogs.widgets.scroll_widget import DynamicScrollingGroup
 
 weather_dialog = Dialog(
     # Main weather menu
@@ -196,12 +195,20 @@ weather_dialog = Dialog(
         getter=getter_weather_changing_city,
         state=WeatherSG.weather_save_city,
     ),
-    # Group settings menu
+    # Group settings choosing group
     Window(
         Format("{group_settings_window}"),
-        DynamicScrollingGroup.create(
-            groups_data=Format({"groups_data"}),
-            on_click_handler=group_click_handler,
+        ScrollingGroup(
+            Select(
+                text=Format("{item[title]}"),
+                id="s_groups",
+                item_id_getter=lambda x: x["group_telegram_id"],
+                items="groups_data",
+                on_click=group_click_handler
+            ),
+            id="group_scroll",
+            width=1,
+            height=5,
         ),
         Button(
             text=Format("{back_button}"),
@@ -211,5 +218,17 @@ weather_dialog = Dialog(
         state=WeatherSG.weather_group_settings,
 
     ),
+    # Group editing settings
+    Window(
+        Format("{group_current_settings}"),
+
+        Button(
+            text=Format("{back_button}"),
+            id="group_settings_back_button",
+            on_click=deny_choosing_group_on_click),
+        getter=getter_edit_group_settings,
+        state=WeatherSG.weather_edit_group,
+    ),
+
     name="weather_main_dialog",
 )

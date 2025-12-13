@@ -94,7 +94,7 @@ async def getter_weather_group_settings(
     for group in groups:
         groups_data.append({
             "id": str(group.id),
-            "title": group.title or f"Группа {group.group_telegram_id}",
+            "title": f"👨‍👩‍👦‍👦 {group.title}" or f"Group {group.group_telegram_id}",
             "group_telegram_id": group.group_telegram_id,
         })
 
@@ -102,4 +102,20 @@ async def getter_weather_group_settings(
         "group_settings_window": i18n.get("group-settings-window"),
         "back_button": i18n.get("back-button"),
         "groups_data": groups_data,
+        "groups_count": len(groups_data)
+    }
+
+
+async def getter_edit_group_settings(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        session: AsyncSession,
+        **kwargs) -> dict[str, Any]:
+
+    settings = dialog_manager.dialog_data["selected_group_settings"]
+
+    return {
+        "group_current_settings": i18n.get("group-current-settings", ),
+        "back_button": i18n.get("back-button"),
+
     }

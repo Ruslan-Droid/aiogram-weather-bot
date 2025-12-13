@@ -2,15 +2,15 @@ import logging
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox
+from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox, Select
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 
-from src.infrastructure.database.dao import UserRepository
-from src.infrastructure.database.models import UserModel, DailyUserTaskModel
+from src.infrastructure.database.dao import UserRepository, GroupChatRepository
+from src.infrastructure.database.models import UserModel, DailyUserTaskModel, GroupModel
 from src.services.open_street_map_api.city_service import CityService
 
 from src.services.weather_api.weather_service import WeatherService
@@ -345,31 +345,32 @@ async def weather_notification_clicked(
 
 async def group_click_handler(
         callback: CallbackQuery,
-        button: Button,
-        dialog_manager: DialogManager
+        widget: Select,  # Теперь это Select виджет
+        dialog_manager: DialogManager,
+        item_id: str,  # group_telegram_id из item_id_getter
 ):
+    """Обработчик выбора группы через Select виджет"""
+    # Получаем выбранную группу
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    group_repo: GroupChatRepository = GroupChatRepository(session)
 
-    # Получаем ID кнопки
-    button_id = button.widget_id
+    # Находим группу по group_telegram_id
+    group: GroupModel = await group_repo.get_group_by_chat_id(telegram_chat_id=int(item_id))
 
-    if button_id == "no_groups":
-        await callback.answer("У вас нет доступных групп", show_alert=True)
+    if not group:
+        await callback.answer("Группа не найдена", show_alert=True)
         return
 
-    if button_id.startswith("group_"):
-        try:
-            group_id = button_id.split("_")[1]
-        except IndexError:
-            await callback.answer("Ошибка обработки группы", show_alert=True)
-            return
+    # Сохраняем ID выбранной группы
 
-        # Сохраняем ID выбранной группы
-        dialog_manager.dialog_data["selected_group_id"] = group_id
+    dialog_manager.dialog_data["selected_group_settings"] = {
+        "id": group.id,
+        "telegram_id": group.group_telegram_id
+        "title": group.title,
+        "group_language": group.language_code,
+    }
 
-        # Переходим в окно редактирования группы
-        # await dialog_manager.switch_to(WeatherSG)
+    # Показываем уведомление
+    await callback.answer(f"Выбрана группа: {group.title or group.group_telegram_id}")
 
-        # Можно показать уведомление
-        await callback.answer(f"Группа #{group_id} выбрана")
-    else:
-        await callback.answer(f"Нажата кнопка: {button_id}")
+    await dialog_manager.switch_to(WeatherSG.weather_edit_group)
