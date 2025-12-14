@@ -4,7 +4,7 @@ from aiogram_dialog import DialogManager
 from fluentogram import TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.dao import UserRepository
+from src.infrastructure.database.dao import UserRepository, GroupTaskRepository
 from src.infrastructure.database.models import UserModel
 
 
@@ -111,11 +111,50 @@ async def getter_edit_group_settings(
         i18n: TranslatorRunner,
         session: AsyncSession,
         **kwargs) -> dict[str, Any]:
-
     settings = dialog_manager.dialog_data["selected_group_settings"]
+    language = "Русский" if settings["group_language"] == "ru" else "English"
 
     return {
-        "group_current_settings": i18n.get("group-current-settings", ),
+        "group_current_settings": i18n.get("group-current-settings", title=settings["title"],
+                                           language=language),
+        "edit_language_for_groups_message": i18n.get("edit-language-for-groups-message"),
+        "task1_button": i18n.get("task1-button"),
+        "task2_button": i18n.get("task2-button"),
         "back_button": i18n.get("back-button"),
 
+    }
+
+
+async def getter_group_task_settings(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        session: AsyncSession,
+        **kwargs) -> dict[str, Any]:
+    group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
+    task_number = dialog_manager.dialog_data["selected_task_number"]
+
+    # get task from DB
+    group_task_repo = GroupTaskRepository(session)
+    task = await group_task_repo.get_group_task(group_id, task_number)
+
+    city = task.city if task.city else "Empty"
+    coords = f"{task.latitude},{task.longitude}" if (task.latitude and task.longitude) else "Empty"
+    notifications_enabled = i18n.get("notifications-on") if task.notifications_enabled else i18n.get(
+        "notifications-off")
+
+    return {
+        "group_task_settings_window": i18n.get(
+            "group-task-settings-window",
+            task_number=task_number,
+            notification_time=task.notification_time,
+            city=city,
+            coords=coords,
+            notifications_enabled=notifications_enabled,
+        ),
+
+        "back_button": i18n.get("back-button"),
+        "change_time_button": i18n.get("settings-change-time-notification-button"),
+        "change_city_button": i18n.get("change-city-button"),
+        "change_coords_button": i18n.get("coords-settings-button"),
+        "toggle_notifications_button": notifications_enabled
     }

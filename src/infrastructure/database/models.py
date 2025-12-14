@@ -91,6 +91,8 @@ class GroupModel(Base):
     bot_status: Mapped[str] = mapped_column(String(20))  # member, administrator, restricted, left, kicked
     admin_permissions: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Timezone region name (e.g., 'Europe/Moscow')
+    tz_region: Mapped[str | None] = mapped_column(String(50), default="Europe/Moscow")
 
     daily_group_tasks: Mapped[list["DailyGroupTaskModel"]] = relationship(
         "DailyGroupTaskModel",
@@ -118,14 +120,20 @@ class DailyGroupTaskModel(Base):
     group_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("groups.id", ondelete="CASCADE"),
-        unique=True,
         nullable=False)
+    task_number: Mapped[int] = mapped_column(Integer, nullable=False) # 1 or 2
     notifications_enabled: Mapped[bool] = mapped_column(default=False)
     notification_time: Mapped[str] = mapped_column(String(5), default="09:00")
     taskiq_task_id: Mapped[str | None] = mapped_column(String(100))
+    city: Mapped[str | None] = mapped_column(String(100))
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
 
     group: Mapped["GroupModel"] = relationship("GroupModel", back_populates="daily_group_tasks")
 
+    __table_args__ = (
+        UniqueConstraint('group_id', 'task_number', name='uq_group_task_number'),
+    )
 
 class GroupAdminModel(Base):
     __tablename__ = "group_admins"

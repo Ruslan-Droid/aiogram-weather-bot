@@ -19,7 +19,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_settings,
     getter_weather_time_settings,
     getter_weather_city_settings,
-    getter_weather_changing_city, getter_weather_group_settings,
+    getter_weather_changing_city, getter_weather_group_settings, getter_edit_group_settings, getter_group_task_settings,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -36,26 +36,31 @@ from src.bot.dialogs.flows.weather.handlers import (
     wrong_city_handler,
     save_city_on_click,
     deny_city_on_click,
-    weather_notification_clicked, go_to_group_settings_on_click, deny_choosing_group_on_click, group_click_handler,
+    weather_notification_clicked, go_to_group_settings_on_click, group_click_handler,
+    go_to_group_task1_settings_on_click, go_to_group_task2_settings_on_click, group_task_change_time_on_click,
+    group_settings_change_language_on_click, group_task_toggle_notifications_on_click,
+    go_back_to_group_settings, group_task_time_handler,
+    go_back_to_group_task_settings, group_task_change_city_on_click, group_task_change_coords_on_click,
+    group_task_city_handler, group_task_coords_handler,
 )
 
 weather_dialog = Dialog(
-    # Main weather menu
+    # ☁️ Main weather menu
     Window(
         I18nFormat("main-weather-dialog"),
-        # weather now
+        # ☁️ weather now
         Button(
             text=Format("{weather_now}"),
             id="weather_now_button",
             on_click=send_today_weather_on_click,
         ),
-        # weather forecast
+        # 📆 weather forecast
         Button(
             text=Format("{weather_forecast}"),
             id="weather_forecast_button",
             on_click=send_today_forecast_on_click,
         ),
-        # weather notification checkbox
+        # 🔴 weather notification checkbox
         Checkbox(
             checked_text=Format("{off_notification}"),
             unchecked_text=Format("{on_notification}"),
@@ -63,19 +68,19 @@ weather_dialog = Dialog(
             default=False,
             on_state_changed=weather_notification_clicked,
         ),
-        # general settings button
+        # ⚙️ general settings button
         Button(
             text=Format("{main_settings}"),
             id="main_settings_button",
             on_click=go_to_general_settings_on_click,
         ),
-        # button to add bot in group
+        # 👥 button to add bot in group
         Url(
             text=Format("{add_group_button}"),
             url=Const("https://t.me/KLG_Weather_Bot?startgroup=newgroups&admin=manage_chat+delete_messages"),
             id="add_group_button",
         ),
-        # button for group settings
+        # 👥⚙️ button for group settings
         Button(
             text=Format("{group_settings}"),
             id="group_settings_button",
@@ -84,34 +89,34 @@ weather_dialog = Dialog(
         getter=getter_weather_main_menu,
         state=WeatherSG.weather_main_menu,
     ),
-    # General settings menu
+    # ☁️ Main weather menu -> ⚙️ General settings menu
     Window(
         Format("{general_settings_weather_settings}"),
-        # language settings button
+        # 🌎 language settings button
         Button(
             text=Format("{language_settings_button}"),
             id="language_settings_button",
             on_click=change_language_on_click,
         ),
-        # change time notification button
+        # ⏰ change time notification button
         Button(
             text=Format("{settings_change_time_notification_button}"),
             id="settings_change_time_notification_button",
             on_click=change_notification_time_on_click,
         ),
-        # change coords button
+        # 🗺 change coords button
         Button(
             text=Format("{coords_settings_button}"),
             id="settings_change_coords_button",
             on_click=change_coords_on_click,
         ),
-        # change city button
+        # 🏡 change city button
         Button(
             text=Format("{change_city_button}"),
             id="change_city_button",
             on_click=change_city_on_click,
         ),
-        # back button
+        # ◀️ back button
         Button(
             text=Format("{back_button}"),
             id="settings_back_button",
@@ -120,8 +125,9 @@ weather_dialog = Dialog(
         getter=getter_weather_settings,
         state=WeatherSG.weather_general_settings,
     ),
-    # From General settings to changing time
+    # ☁️ Main weather menu -> ⚙️ General settings menu ->  ⏰ change time
     Window(I18nFormat("start-change-time-notification"),
+           # ◀️ back button
            Button(
                text=Format("{back_button}"),
                id="settings_back_button",
@@ -138,13 +144,14 @@ weather_dialog = Dialog(
            getter=getter_weather_time_settings,
            state=WeatherSG.weather_changing_time,
            ),
-    # From General settings to changing coords
+    # ☁️ Main weather menu -> ⚙️ General settings menu -> 🗺 change coords
     Window(
         StaticMedia(
             path=Path("src", "bot", "dialogs", "flows", "registration", "media", "new.mp4"),
             type=ContentType.ANIMATION,
         ),
         RequestLocation(I18nFormat("keyboard-coords")),
+        # ◀️ back button
         MAIN_SETTINGS_BUTTON,
         MessageInput(
             func=location_handler,
@@ -158,9 +165,10 @@ weather_dialog = Dialog(
             resize_keyboard=True),
         state=WeatherSG.weather_changing_coords,
     ),
-    # from general settings to changing city
+    # ☁️ Main weather menu -> ⚙️ General settings menu -> 🏡 change city
     Window(
         I18nFormat("start-change-city"),
+        # ◀️ back button
         Button(
             text=Format("{back_button}"),
             id="settings_back_button",
@@ -177,15 +185,17 @@ weather_dialog = Dialog(
         state=WeatherSG.weather_changing_city,
         getter=getter_weather_city_settings,
     ),
-    # from changing city to save or deny changes
+    # ☁️ Main weather menu -> ⚙️ General settings menu -> 🏡 change city -> ✅ save chosen city
     Window(
         Format("{current_city}"),
         Row(
+            # ◀️ back button
             Button(
                 text=Format("{back_button}"),
                 id="city_back_button",
                 on_click=deny_city_on_click,
             ),
+            # ✅ Save button
             Button(
                 text=Format("{save_button}"),
                 id="city_save_button",
@@ -195,9 +205,10 @@ weather_dialog = Dialog(
         getter=getter_weather_changing_city,
         state=WeatherSG.weather_save_city,
     ),
-    # Group settings choosing group
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu
     Window(
         Format("{group_settings_window}"),
+        # 👥 buttons with groups titles
         ScrollingGroup(
             Select(
                 text=Format("{item[title]}"),
@@ -210,24 +221,136 @@ weather_dialog = Dialog(
             width=1,
             height=5,
         ),
+        # ◀️ back button
         Button(
             text=Format("{back_button}"),
             id="group_settings_back_button",
-            on_click=deny_choosing_group_on_click),
+            on_click=go_to_main_menu_on_click),
         getter=getter_weather_group_settings,
         state=WeatherSG.weather_group_settings,
 
     ),
-    # Group editing settings
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group
     Window(
         Format("{group_current_settings}"),
-
+        # 🌎 edit language for group button
+        Button(
+            text=Format("{edit_language_for_groups_message}"),
+            id="edit_language_for_groups_message_button",
+            on_click=group_settings_change_language_on_click,
+        ),
+        # 🎯 task №1 button
+        Button(
+            text=Format("{task1_button}"),
+            id="group_task_1_button",
+            on_click=go_to_group_task1_settings_on_click,
+        ),
+        # 🎯 task №2 button
+        Button(
+            text=Format("{task2_button}"),
+            id="group_task_2_button",
+            on_click=go_to_group_task2_settings_on_click,
+        ),
+        # ◀️ back button
         Button(
             text=Format("{back_button}"),
             id="group_settings_back_button",
-            on_click=deny_choosing_group_on_click),
+            on_click=go_to_group_settings_on_click),
         getter=getter_edit_group_settings,
         state=WeatherSG.weather_edit_group,
+    ),
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group
+    Window(
+        Format("{group_task_settings_window}"),
+        Button(
+            text=Format("{change_time_button}"),
+            id="group_task_change_time_button",
+            on_click=group_task_change_time_on_click,
+        ),
+        Button(
+            text=Format("{change_city_button}"),
+            id="change_city_button",
+            on_click=group_task_change_city_on_click,
+        ),
+        Button(
+            text=Format("{change_coords_button}"),
+            id="change_coords_button",
+            on_click=group_task_change_coords_on_click,
+        ),
+        Button(
+            text=Format("{toggle_notifications_button}"),
+            id="group_task_toggle_notifications_button",
+            on_click=group_task_toggle_notifications_on_click,
+        ),
+        Button(
+            text=Format("{back_button}"),
+            id="group_task_back_button",
+            on_click=go_back_to_group_settings,
+        ),
+        getter=getter_group_task_settings,
+        state=WeatherSG.weather_group_task_settings,
+    ),
+
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group -> ⏰ edit time
+    Window(
+        I18nFormat("start-change-time-notification"),
+        Button(
+            text=Format("{back_button}"),
+            id="group_task_back_button",
+            on_click=go_back_to_group_task_settings,
+        ),
+        MessageInput(
+            func=group_task_time_handler,
+            content_types=ContentType.TEXT,
+        ),
+        MessageInput(
+            func=wrong_time_handler,
+            content_types=ContentType.ANY
+        ),
+        state=WeatherSG.weather_group_task_changing_time,
+    ),
+
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group -> 🏡 edit city
+    Window(
+        I18nFormat("start-change-city"),
+        Button(
+            text=Format("{back_button}"),
+            id="group_task_back_button",
+            on_click=go_back_to_group_task_settings,
+        ),
+        MessageInput(
+            func=group_task_city_handler,
+            content_types=ContentType.TEXT
+        ),
+        MessageInput(
+            func=wrong_city_handler,
+            content_types=ContentType.ANY
+        ),
+        state=WeatherSG.weather_group_task_changing_city,
+    ),
+
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group -> 🗺 edit coords
+    Window(
+        StaticMedia(
+            path=Path("src", "bot", "dialogs", "flows", "registration", "media", "new.mp4"),
+            type=ContentType.ANIMATION,
+        ),
+        RequestLocation(I18nFormat("keyboard-coords")),
+        Button(
+            text=Format("{back_button}"),
+            id="group_task_back_button",
+            on_click=go_back_to_group_task_settings,
+        ),
+        MessageInput(
+            func=group_task_coords_handler,
+            content_types=ContentType.LOCATION
+        ),
+        MessageInput(
+            func=wrong_location_handler,
+            content_types=ContentType.ANY
+        ),
+        markup_factory=ReplyKeyboardFactory(resize_keyboard=True),
+        state=WeatherSG.weather_group_task_changing_coords,
     ),
 
     name="weather_main_dialog",

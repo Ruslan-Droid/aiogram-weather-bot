@@ -73,7 +73,7 @@ lang-saved = ✅ The language settings have been saved successfully!
 weather-now-button = ☁️ Weather now
 weather-forecast-button = 📆 Weather forecast for today
 main-settings-button = ⚙️ General bot settings
-add-group-button = 👥 Add bot to a group
+add-group-button = 👥 Add bot to a group as admin
 group-settings-button = 👥⚙️ Bot settings in a group
 language-settings-button = 🌎 Change language
 settings-change-time-notification-button = ⏰ Change notification time
@@ -96,10 +96,11 @@ main-weather-dialog =
 
 general-settings-weather-settings =
     General WeatherBot⛅️ settings:
-    Language: <b>{ $language_settings }</b>
-    Notification time: <b>{ $time_settings }</b>
-    Coords: <b>{ $coords_settings }</b>
-    City: <b>{ $city_settings }</b>
+
+    🌎 Language: <b>{ $language_settings }</b>
+    ⏰ Notification time: <b>{ $time_settings }</b>
+    🗺 Coords: <b>{ $coords_settings }</b>
+    🏡 City: <b>{ $city_settings }</b>
 
 parsing-weather-time = Time
 parsing-weather-temperature = Temperature
@@ -145,3 +146,27 @@ group-settings-window =
 
 no-groups = No groups
 
+group-current-settings =
+    Main settings <b>{ $title }</b>:
+
+    Language for group: <b>{ $language }</b>
+
+    You can set up to 2 daily weather alerts to a group.
+
+task1-button = Daily task №1 🎯
+
+task2-button = Daily task №2 🎯
+
+edit-language-for-groups-message = 🌎 Change language for group
+
+location-is-none = is empty
+
+group-task-settings-window =
+    <b>Task №{ $task_number }</b> settings:
+    ⏰ Time: <b>{ $notification_time }</b>
+    🏡 City: <b>{ $city }</b>
+    🗺 Coords: <b>{ $coords }</b>
+    🔔 Notifications: <b>{ $notifications_enabled }</b>
+
+notifications-off = 🚫 Daily forecast off
+notifications-on = ✅ Daily forecast on

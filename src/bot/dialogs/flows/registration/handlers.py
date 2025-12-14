@@ -41,7 +41,7 @@ async def location_handler(
             time=task_settings.notification_time,
             location=(message.location.latitude, message.location.longitude),
             language=user.language_code,
-            chat_id=user.telegram_id,
+            telegram_chat_id=user.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
             user_repo=user_rep,
         )

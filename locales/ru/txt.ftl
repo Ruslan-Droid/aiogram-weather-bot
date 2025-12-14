@@ -73,7 +73,7 @@ lang-saved = ✅ Настройки языка успешно сохранены
 weather-now-button = ☁️ Погода сейчас ️️
 weather-forecast-button = 📆 Прогноз погоды на сегодня
 main-settings-button = ⚙️ Общие настройки бота
-add-group-button = 👥 Добавить бота в группу
+add-group-button = 👥 Добавить бота в группу админом
 group-settings-button = 👥⚙️ Настроить бота в группе
 language-settings-button = 🌎 Настроить язык
 settings-change-time-notification-button = ⏰ Изменить время уведомлений
@@ -96,10 +96,11 @@ main-weather-dialog =
 
 general-settings-weather-settings =
     Основные настройки WeatherBot⛅️:
-    Язык = <b>{ $language_settings }</b>
-    Время ежедневного прогноза = <b>{ $time_settings }</b>
-    Координаты = <b>{ $coords_settings }</b>
-    Город = <b>{ $city_settings }</b>
+
+    🌎 Язык = <b>{ $language_settings }</b>
+    ⏰ Время ежедневного прогноза = <b>{ $time_settings }</b>
+    🗺 Координаты = <b>{ $coords_settings }</b>
+    🏡 Город = <b>{ $city_settings }</b>
 
 parsing-weather-time = Время
 parsing-weather-temperature = Температура
@@ -145,3 +146,28 @@ group-settings-window =
     Настраивать и добавлять бота в группу может только администратор этой группы.
 
 no-groups = Нет групп
+
+group-current-settings =
+    Основные настройки <b>{ $title }</b>:
+
+    Язык для группы: <b>{ $language }</b>
+
+    Можно настроить до 2-х рахных ежедневных рассылок погоды в группу.
+
+task1-button = Ежедневная задача №1 🎯
+
+task2-button = Ежедневная задача №2 🎯
+
+edit-language-for-groups-message = 🌎 Настроить язык для группы
+
+location-is-none = не установлена
+
+group-task-settings-window =
+    Настройки <b>задачи №{ $task_number }</b>:
+    ⏰ Время: <b>{ $notification_time }</b>
+    🏡 Город: <b>{ $city }</b>
+    🗺 Координаты: <b>{ $coords }</b>
+    🔔 Уведомления: <b>{ $notifications_enabled }</b>
+
+notifications-off = 🚫 Рассылка отключена
+notifications-on = ✅ Рассылка включены

@@ -7,7 +7,8 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from src.bot.enums.group_data import AdminData
-from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel, GroupAdminModel
+from src.infrastructure.database.models import UserModel, UserRole, DailyUserTaskModel, GroupModel, GroupAdminModel, \
+    DailyGroupTaskModel
 
 logger = logging.getLogger(__name__)
 
@@ -602,3 +603,217 @@ class GroupChatRepository:
         except Exception as e:
             await self.session.rollback()
             logger.error("Error while migration group: %s -> %s, error: %s", old_chat_id, new_chat_id, str(e))
+
+
+class GroupTaskRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get_group_tasks(self, group_id: int) -> list[DailyGroupTaskModel]:
+        try:
+            stmt = select(DailyGroupTaskModel).where(
+                DailyGroupTaskModel.group_id == group_id
+            ).order_by(DailyGroupTaskModel.task_number)
+            result = await self.session.scalars(stmt)
+            logger.debug("Tasks for group: %s found successfully", group_id)
+            return list(result.all())
+        except Exception as e:
+            logger.error("Error getting tasks by group id %s: %s", group_id, str(e))
+            raise
+
+    async def get_group_task(self, group_id: int, task_number: int) -> DailyGroupTaskModel:
+        try:
+            stmt = select(DailyGroupTaskModel).where(
+                DailyGroupTaskModel.group_id == group_id,
+                DailyGroupTaskModel.task_number == task_number
+            )
+
+            task = await self.session.scalar(stmt)
+
+            # create if it doesn't exist
+            if not task:
+                task = DailyGroupTaskModel(
+                    group_id=group_id,
+                    task_number=task_number,
+                    notification_time="09:00",
+                )
+                self.session.add(task)
+                await self.session.commit()
+                logger.debug("Task for group: %s created successfully", group_id)
+                await self.session.refresh(task)
+
+            logger.info("Task for group: %s found successfully", group_id)
+            return task
+
+        except Exception as e:
+            logger.error("Error getting task by group id %s and taks #%s: %s", group_id, task_number, str(e))
+            raise
+
+    async def update_group_task_time(
+            self,
+            group_id: int,
+            task_number: int,
+            notification_time: str
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(notification_time=notification_time)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Time for task: %s for group: %s updated successfully",task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error update time for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+    async def update_group_task_city(
+            self,
+            group_id: int,
+            task_number: int,
+            city: str
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(city=city)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("City for task: %s for group: %s updated successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error update city for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+    async def update_group_task_coords(
+            self,
+            group_id: int,
+            task_number: int,
+            latitude: float,
+            longitude: float
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(latitude=latitude, longitude=longitude)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Coords for task: %s for group: %s updated successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error update coords for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+
+    async def update_group_task_language(
+            self,
+            group_id: int,
+            task_number: int,
+            language_code: str
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(language_code=language_code)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Language for task: %s for group: %s updated successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error update language for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+    async def enable_group_notification(
+            self,
+            group_id: int,
+            task_number: int,
+            taskiq_task_id: str
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(
+                    notifications_enabled=True,
+                    taskiq_task_id=taskiq_task_id
+                )
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Notification for task: %s for group: %s enabled successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error enable notification for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+
+    async def disable_group_notification(
+            self,
+            group_id: int,
+            task_number: int
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(
+                    notifications_enabled=False,
+                    taskiq_task_id=None
+                )
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Notification for task: %s for group: %s disabled successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error disable notification for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise
+
+    async def update_taskiq_task_id(
+            self,
+            group_id: int,
+            task_number: int,
+            taskiq_task_id: str
+    ) -> None:
+        try:
+            stmt = (
+                update(DailyGroupTaskModel)
+                .where(
+                    DailyGroupTaskModel.group_id == group_id,
+                    DailyGroupTaskModel.task_number == task_number
+                )
+                .values(taskiq_task_id=taskiq_task_id)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Taskiq task for task: %s for group: %s updated successfully", task_number, group_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error update taskiq task id for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            raise

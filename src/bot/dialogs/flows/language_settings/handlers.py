@@ -67,7 +67,7 @@ async def update_user_lang(
             time=task_settings.notification_time,
             location=location,
             language=user_row.language_code,
-            chat_id=user_row.telegram_id,
+            telegram_chat_id=user_row.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
             user_repo=user_repo,
         )
