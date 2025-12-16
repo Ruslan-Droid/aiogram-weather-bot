@@ -2,7 +2,7 @@ import logging
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox, Select
+from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox, Select, ManagedRadio
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
 
@@ -402,7 +402,34 @@ async def group_settings_change_language_on_click(
         widget: Button,
         dialog_manager: DialogManager
 ) -> None:
-    await dialog_manager.start(state=WeatherSG.weather_edit_group_language)
+    await dialog_manager.switch_to(state=WeatherSG.weather_edit_group_language)
+
+
+# ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🌎 change language
+async def group_settings_save_language_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager,
+) -> None:
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    locales: list[str] = dialog_manager.middleware_data.get("bot_locales")
+    group_telegram_id = dialog_manager.dialog_data["selected_group_settings"]["telegram_id"]
+    radio_lang: ManagedRadio = dialog_manager.find("radio_lang_group")
+
+    checked_id = radio_lang.get_checked()
+    group_repo: GroupChatRepository = GroupChatRepository(session)
+
+    if checked_id is None:
+        await callback.answer(text=i18n.get("choose-language"), show_alert=True)
+        return
+
+    checked_locale = locales[int(checked_id) - 1]
+    await group_repo.update_group_language(telegram_chat_id=group_telegram_id, language_code=checked_locale)
+    dialog_manager.dialog_data["selected_group_settings"]["group_language"] = checked_locale
+    await callback.answer(text=i18n.get("lang-saved"), show_alert=True)
+    await callback.message.delete()
+    await dialog_manager.switch_to(state=WeatherSG.weather_edit_group)
 
 
 # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit task #1
@@ -480,7 +507,7 @@ async def group_task_time_handler(
             )
 
             group_task: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id,
-                                                                                   task_number=task_number),
+                                                                                   task_number=task_number)
 
             # update task with new time if notification enabled
             if group_task.notifications_enabled:
@@ -499,9 +526,9 @@ async def group_task_time_handler(
                     group_repo=group_task_repo,
                 )
 
-                await message.answer(text=i18n.get("time-changed-successfully", time=time),
+            await message.answer(text=i18n.get("time-changed-successfully", time=time),
                                      message_effect_id="5046509860389126442")
-                await dialog_manager.switch_to(state=WeatherSG.weather_group_task_settings)
+            await dialog_manager.switch_to(state=WeatherSG.weather_group_task_settings)
         else:
             await message.delete()
 

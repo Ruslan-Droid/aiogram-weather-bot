@@ -484,6 +484,25 @@ class GroupChatRepository:
             logger.error("Error getting user by telegram id %s: %s", telegram_chat_id, str(e))
             raise
 
+    async def update_group_language(
+            self,
+            telegram_chat_id: int,
+            language_code: str
+    ) -> None:
+        try:
+            stmt = (
+                update(GroupModel)
+                .where(GroupModel.group_telegram_id == telegram_chat_id)
+                .values(language_code=language_code)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated coordinates for telegram id: %s", telegram_chat_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating coordinates for telegram id: %s error: %s", telegram_chat_id, str(e))
+            raise
+
     async def update_activity_status_for_group(
             self,
             chat_id: int,
@@ -603,6 +622,7 @@ class GroupChatRepository:
         except Exception as e:
             await self.session.rollback()
             logger.error("Error while migration group: %s -> %s, error: %s", old_chat_id, new_chat_id, str(e))
+
 
 
 class GroupTaskRepository:

@@ -3,7 +3,7 @@ from pathlib import Path
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url, ScrollingGroup, Select
+from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, Url, ScrollingGroup, Select, Radio
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format, Const
@@ -20,6 +20,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_time_settings,
     getter_weather_city_settings,
     getter_weather_changing_city, getter_weather_group_settings, getter_edit_group_settings, getter_group_task_settings,
+    getter_edit_group_language,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -41,7 +42,7 @@ from src.bot.dialogs.flows.weather.handlers import (
     group_settings_change_language_on_click, group_task_toggle_notifications_on_click,
     go_back_to_group_settings, group_task_time_handler,
     go_back_to_group_task_settings, group_task_change_city_on_click, group_task_change_coords_on_click,
-    group_task_city_handler, group_task_coords_handler,
+    group_task_city_handler, group_task_coords_handler, group_settings_save_language_on_click,
 )
 
 weather_dialog = Dialog(
@@ -259,6 +260,37 @@ weather_dialog = Dialog(
         getter=getter_edit_group_settings,
         state=WeatherSG.weather_edit_group,
     ),
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🌎 edit language
+    Window(
+Format("{language_group_window}"),
+        ScrollingGroup(
+            Radio(
+                checked_text=Format("🔘 {item[0]}"),
+                unchecked_text=Format("⚪️ {item[0]}"),
+                id="radio_lang_group",
+                item_id_getter=lambda x: x[1],
+                items="lang_group_buttons",
+            ),
+            id="lang_group_scroll",
+            width=1,
+            height=5,
+            hide_on_single_page=True,
+        ),
+        Row(
+            Button(
+                text=Format("{back_button}"),
+                id="set_group_lang_back_button_click",
+                on_click=go_back_to_group_settings,
+            ),
+            Button(
+                text=Format("{save_button}"),
+                id="save_group_lang_button_click",
+                on_click=group_settings_save_language_on_click,
+            ),
+        ),
+        getter=getter_edit_group_language,
+        state=WeatherSG.weather_edit_group_language,
+    ),
     # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group
     Window(
         Format("{group_task_settings_window}"),
@@ -307,6 +339,7 @@ weather_dialog = Dialog(
             func=wrong_time_handler,
             content_types=ContentType.ANY
         ),
+        getter=getter_weather_time_settings,
         state=WeatherSG.weather_group_task_changing_time,
     ),
 

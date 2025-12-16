@@ -150,13 +150,13 @@ no-groups = Нет групп
 group-current-settings =
     Основные настройки <b>{ $title }</b>:
 
-    Язык для группы: <b>{ $language }</b>
+    🌎 Язык для группы: <b>{ $language }</b>
 
     Можно настроить до 2-х рахных ежедневных рассылок погоды в группу.
 
-task1-button = Ежедневная задача №1 🎯
+task1-button = Ежедневная погода №1 🎯
 
-task2-button = Ежедневная задача №2 🎯
+task2-button = Ежедневная погода №2 🎯
 
 edit-language-for-groups-message = 🌎 Настроить язык для группы
 
@@ -171,3 +171,6 @@ group-task-settings-window =
 
 notifications-off = 🚫 Рассылка отключена
 notifications-on = ✅ Рассылка включены
+
+language-group-window =  <b>Пожалуйста, выберите язык сообщений бота в группе</b>
+choose-language = Выбери язык!

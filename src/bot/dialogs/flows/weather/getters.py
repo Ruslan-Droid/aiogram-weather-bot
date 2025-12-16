@@ -1,9 +1,11 @@
 from typing import Any
 
 from aiogram_dialog import DialogManager
-from fluentogram import TranslatorRunner
+from aiogram_dialog.widgets.kbd import ManagedRadio
+from fluentogram import TranslatorRunner, TranslatorHub
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.dialogs.flows.language_settings.keyboards import get_lang_buttons
 from src.infrastructure.database.dao import UserRepository, GroupTaskRepository
 from src.infrastructure.database.models import UserModel
 
@@ -122,6 +124,21 @@ async def getter_edit_group_settings(
         "task2_button": i18n.get("task2-button"),
         "back_button": i18n.get("back-button"),
 
+    }
+
+
+async def getter_edit_group_language(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs
+) -> dict[str, Any]:
+    locales = dialog_manager.middleware_data.get("bot_locales")
+
+    return {
+        "language_group_window": i18n.get("language-group-window"),
+        "lang_group_buttons": get_lang_buttons(locales=locales, i18n=i18n),
+        "back_button": i18n.get("back-button"),
+        "save_button": i18n.get("save-button"),
     }
 
 

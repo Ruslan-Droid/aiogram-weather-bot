@@ -149,13 +149,13 @@ no-groups = No groups
 group-current-settings =
     Main settings <b>{ $title }</b>:
 
-    Language for group: <b>{ $language }</b>
+    🌎 Language for group: <b>{ $language }</b>
 
     You can set up to 2 daily weather alerts to a group.
 
-task1-button = Daily task №1 🎯
+task1-button = Daily weather №1 🎯
 
-task2-button = Daily task №2 🎯
+task2-button = Daily weather №2 🎯
 
 edit-language-for-groups-message = 🌎 Change language for group
 
@@ -170,3 +170,6 @@ group-task-settings-window =
 
 notifications-off = 🚫 Daily forecast off
 notifications-on = ✅ Daily forecast on
+
+language-group-window =  <b>Please select a language for bot messages in the group</b>
+choose-language = Choose language!

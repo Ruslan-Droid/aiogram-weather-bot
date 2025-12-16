@@ -14,7 +14,6 @@ from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
 from fluentogram import TranslatorHub
-from taskiq import TaskiqEvents, TaskiqState
 from nats_broker.nats_connect import connect_to_nats
 
 from src.bot.dialogs.flows import dialogs
