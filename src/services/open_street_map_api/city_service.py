@@ -12,15 +12,20 @@ class CityService:
     def __init__(self, base_url: str):
         self.base_url = base_url
 
+    @staticmethod
+    def _city_parsing(city: str) -> str:
+        return city.strip().lower()
+
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(1),
            retry=retry_if_exception_type(aiohttp.ClientConnectionError))
     async def check_city(
             self,
             city_name: str
     ) -> tuple[str, str] | None:
+        city = self._city_parsing(city_name)
 
         params = {
-            "q": city_name,
+            "q": city,
             "format": "jsonv2",
             "limit": 1,
         }

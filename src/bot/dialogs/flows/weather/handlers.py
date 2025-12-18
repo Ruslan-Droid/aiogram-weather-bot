@@ -8,6 +8,7 @@ from aiogram_dialog.api.entities.modes import ShowMode
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
+from src.bot.services.time_checker import is_valid_time
 
 from src.infrastructure.database.dao import UserRepository, GroupChatRepository, GroupTaskRepository
 from src.infrastructure.database.models import UserModel, DailyUserTaskModel, GroupModel, DailyGroupTaskModel
@@ -47,7 +48,7 @@ async def send_today_weather_on_click(
     current_weather = await redis_pool.get(name=f"currentweather:{user.language_code}:{user.telegram_id}")
 
     if current_weather is None:
-        logger.info("Cache is empty for user %s", user.telegram_id)
+        logger.debug("Cache is empty for user %s", user.telegram_id)
 
         location = (user.latitude, user.longitude) if user.city is None else user.city
 
@@ -175,7 +176,8 @@ async def go_to_group_settings_on_click(
         widget: Button,
         dialog_manager: DialogManager
 ) -> None:
-    await dialog_manager.switch_to(state=WeatherSG.weather_group_settings)
+    dialog_manager.dialog_data.clear()
+    await dialog_manager.switch_to(state=WeatherSG.weather_groups_list_to_edit)
 
 
 # go to ☁️ Main weather menu
@@ -220,31 +222,30 @@ async def time_handler(
 
     time = message.text
 
-    if len(time) == 5 and time[2] == ":":
-        hours, minutes = map(int, time.split(":"))
-        if 0 <= hours <= 23 and 0 <= minutes <= 59:
-            user_repo: UserRepository = UserRepository(session)
-            await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
+    if is_valid_time(time):
+        user_repo: UserRepository = UserRepository(session)
+        await user_repo.update_daly_notification_time(telegram_id=user.telegram_id, notification_time=time)
 
-            task_settings: DailyUserTaskModel = user.daily_task
+        task_settings: DailyUserTaskModel = user.daily_task
 
-            # update task with new time if notification enabled
-            if task_settings.notifications_enabled:
-                location = (user.latitude, user.longitude) if user.city is None else user.city
+        # update task with new time if notification enabled
+        if task_settings.notifications_enabled:
+            location = (user.latitude, user.longitude) if user.city is None else user.city
 
-                await update_send_daily_weather_task(
-                    source=redis_source,
-                    time=time,
-                    location=location,
-                    language=user.language_code,
-                    telegram_chat_id=user.telegram_id,
-                    taskiq_task_id=task_settings.taskiq_task_id,
-                    user_repo=user_repo,
-                )
+            await update_send_daily_weather_task(
+                source=redis_source,
+                tz_region=user.tz_region,
+                time=time,
+                location=location,
+                language=user.language_code,
+                telegram_chat_id=user.telegram_id,
+                taskiq_task_id=task_settings.taskiq_task_id,
+                user_repo=user_repo,
+            )
 
-            await message.answer(text=i18n.get("time-changed-successfully", time=time),
-                                 message_effect_id="5046509860389126442")
-            await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
+        await message.answer(text=i18n.get("time-changed-successfully", time=time),
+                             message_effect_id="5046509860389126442")
+        await dialog_manager.switch_to(state=WeatherSG.weather_general_settings)
     else:
         await message.delete()
 
@@ -294,7 +295,8 @@ async def city_handler(
 
     dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
 
-    city = message.text.strip().lower()
+    city = message.text
+
     checked_city = await city_service.check_city(city)
 
     if checked_city:
@@ -343,6 +345,7 @@ async def save_city_on_click(
     if task_settings.notifications_enabled:
         await update_send_daily_weather_task(
             source=redis_source,
+            tz_region=user.tz_region,
             time=task_settings.notification_time,
             location=city_name,
             language=user.language_code,
@@ -375,15 +378,16 @@ async def group_click_handler(
         item_id: str,  # group_telegram_id from item_id_getter
 ) -> None:
     session: AsyncSession = dialog_manager.middleware_data.get("session")
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
     group_repo: GroupChatRepository = GroupChatRepository(session)
 
     group: GroupModel = await group_repo.get_group_by_chat_id(telegram_chat_id=int(item_id))
 
     if not group:
-        await callback.answer("Группа не найдена", show_alert=True)
+        await callback.answer(text=i18n.get("group-not-found"), show_alert=True)
         return
 
-    # save id chosen group
+    # save info chosen group
     dialog_manager.dialog_data["selected_group_settings"] = {
         "id": group.id,
         "telegram_id": group.group_telegram_id,
@@ -392,7 +396,7 @@ async def group_click_handler(
         "group_tz_region": group.tz_region
     }
 
-    await callback.answer(f"Выбрана группа: {group.title or group.group_telegram_id}")
+    await callback.answer(text=i18n.get("chosen-group", group_name=group.title or "no title"))
     await dialog_manager.switch_to(WeatherSG.weather_edit_group)
 
 
@@ -488,49 +492,47 @@ async def group_task_time_handler(
     i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
     redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
 
-    time = message.text
     group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
     group_telegram_id = dialog_manager.dialog_data["selected_group_settings"]["telegram_id"]
     task_number = dialog_manager.dialog_data["selected_task_number"]
     group_language = dialog_manager.dialog_data["selected_group_settings"]["group_language"]
     group_timezone = dialog_manager.dialog_data["selected_group_settings"]["group_tz_region"]
 
-    if len(time) == 5 and time[2] == ":":
-        hours, minutes = map(int, time.split(":"))
-        if 0 <= hours <= 23 and 0 <= minutes <= 59:
+    time = message.text
 
-            group_task_repo = GroupTaskRepository(session)
-            await group_task_repo.update_group_task_time(
+    if is_valid_time(time):
+        group_task_repo = GroupTaskRepository(session)
+        await group_task_repo.update_group_task_time(
+            group_id=group_id,
+            task_number=task_number,
+            notification_time=time,
+        )
+
+        group_task: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id,
+                                                                               task_number=task_number)
+
+        # update task with new time if notification enabled
+        if group_task.notifications_enabled:
+            location = (group_task.latitude, group_task.longitude) if group_task.city is None else group_task.city
+
+            await update_send_daily_weather_task_for_group(
+                source=redis_source,
+                time=time,
+                tz_region=group_timezone,
+                location=location,
+                language=group_language,
+                telegram_chat_id=group_telegram_id,
                 group_id=group_id,
-                task_number=task_number,
-                notification_time=time,
+                taskiq_task_id=group_task.taskiq_task_id,
+                group_task_number=task_number,
+                group_task_repo=group_task_repo,
             )
 
-            group_task: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id,
-                                                                                   task_number=task_number)
-
-            # update task with new time if notification enabled
-            if group_task.notifications_enabled:
-                location = (group_task.latitude, group_task.longitude) if group_task.city is None else group_task.city
-
-                await update_send_daily_weather_task_for_group(
-                    source=redis_source,
-                    time=time,
-                    tz_region=group_timezone,
-                    location=location,
-                    language=group_language,
-                    telegram_chat_id=group_telegram_id,
-                    group_id=group_id,
-                    taskiq_task_id=group_task.taskiq_task_id,
-                    group_task_number=task_number,
-                    group_repo=group_task_repo,
-                )
-
-            await message.answer(text=i18n.get("time-changed-successfully", time=time),
-                                     message_effect_id="5046509860389126442")
-            await dialog_manager.switch_to(state=WeatherSG.weather_group_task_settings)
-        else:
-            await message.delete()
+        await message.answer(text=i18n.get("time-changed-successfully", time=time),
+                             message_effect_id="5046509860389126442")
+        await dialog_manager.switch_to(state=WeatherSG.weather_group_task_settings)
+    else:
+        await message.delete()
 
 
 # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit task -> 🏡 change city
@@ -566,6 +568,48 @@ async def group_task_city_handler(
         await message.answer(text=i18n.get("city-not-found"))
 
 
+# 🏡 save chosen city for group task✅
+async def save_group_task_city_on_click(
+        callback: CallbackQuery,
+        widget: Button,
+        dialog_manager: DialogManager
+) -> None:
+    session: AsyncSession = dialog_manager.middleware_data.get("session")
+    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+    # get group info
+    group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
+    group_telegram_id = dialog_manager.dialog_data["selected_group_settings"]["telegram_id"]
+    task_number = dialog_manager.dialog_data["selected_task_number"]
+    group_language = dialog_manager.dialog_data["selected_group_settings"]["group_language"]
+    group_timezone = dialog_manager.dialog_data["selected_group_settings"]["group_tz_region"]
+
+    group_task_repo = GroupTaskRepository(session)
+
+    city_name = dialog_manager.dialog_data["city_name"]
+
+    await group_task_repo.update_group_task_city(group_id=group_id, task_number=task_number,
+                                            city=city_name)
+
+    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id, task_number=task_number)
+
+    # update task with new city if notification enabled
+    if task_settings.notifications_enabled:
+        await update_send_daily_weather_task_for_group(
+            source=redis_source,
+            time=task_settings.notification_time,
+            tz_region=group_timezone,
+            location=city_name,
+            language=group_language,
+            telegram_chat_id=group_telegram_id,
+            group_id=group_id,
+            group_task_number=task_number,
+            taskiq_task_id=task_settings.taskiq_task_id,
+            group_task_repo=group_repo,
+        )
+
+    await dialog_manager.switch_to(WeatherSG.weather_group_task_settings)
+
+
 # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit task -> 🗺 change coords
 async def group_task_change_coords_on_click(
         callback: CallbackQuery,
@@ -581,7 +625,48 @@ async def group_task_coords_handler(
         widget: MessageInput,
         dialog_manager: DialogManager
 ) -> None:
-    pass
+    session: AsyncSession = dialog_manager.middleware_data.get('session')
+    i18n: TranslatorRunner = dialog_manager.middleware_data.get("i18n")
+    redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+    # get group info
+    group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
+    group_telegram_id = dialog_manager.dialog_data["selected_group_settings"]["telegram_id"]
+    task_number = dialog_manager.dialog_data["selected_task_number"]
+    group_language = dialog_manager.dialog_data["selected_group_settings"]["group_language"]
+    group_timezone = dialog_manager.dialog_data["selected_group_settings"]["group_tz_region"]
+
+    group_task_repo = GroupTaskRepository(session)
+
+    await group_task_repo.update_group_task_coords(
+        group_id=group_id,
+        task_number=task_number,
+        longitude=message.location.longitude,
+        latitude=message.location.latitude)
+
+    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id, task_number=task_number)
+
+    # update task with new coords if notification enabled
+    if task_settings.notifications_enabled:
+        await update_send_daily_weather_task_for_group(
+            source=redis_source,
+            time=task_settings.notification_time,
+            tz_region=group_timezone,
+            location=(message.location.latitude, message.location.longitude),
+            language=group_language,
+            telegram_chat_id=group_telegram_id,
+            group_id=group_id,
+            group_task_number=task_number,
+            taskiq_task_id=task_settings.taskiq_task_id,
+            group_task_repo=group_task_repo,
+        )
+
+    await message.answer(text=i18n.get(
+        "start-finish-registration",
+        latitude=message.location.latitude,
+        longitude=message.location.longitude),
+        message_effect_id="5046509860389126442", )
+
+    await dialog_manager.switch_to(WeatherSG.weather_group_task_settings)
 
 
 async def group_task_toggle_notifications_on_click(
@@ -602,31 +687,37 @@ async def group_task_toggle_notifications_on_click(
     task = await group_task_repo.get_group_task(group_id, task_number)
 
     if not task.notifications_enabled:
-        # Включаем уведомления
+
         location = task.city if task.city else (task.latitude, task.longitude)
 
-        # Создаем задачу в scheduler (аналогично пользовательской)
-        scheduled_task = await send_daily_weather.schedule_by_cron(
-            source=redis_source,
-            # cron=f"{task.notification_time.split(':')[1]} {task.notification_time.split(':')[0]} * * *",
-            # cron_offset=group_timezone,
-            location=location,
-            language=group_language,
-            telegram_chat_id=group_telegram_id,
-        )
+        if location and location != (None, None):
+            print(location)
+            scheduled_task = await send_daily_weather.schedule_by_cron(
+                source=redis_source,
+                # cron=f"{task.notification_time.split(':')[1]} {task.notification_time.split(':')[0]} * * *",
+                # cron_offset=group_timezone,
+                cron="*/2 * * * *",
+                location=location,
+                language=group_language,
+                telegram_chat_id=group_telegram_id,
+            )
 
-        await group_task_repo.enable_group_notification(
-            group_id=group_id,
-            task_number=task_number,
-            taskiq_task_id=scheduled_task.schedule_id
-        )
+            await group_task_repo.enable_group_notification(
+                group_id=group_id,
+                task_number=task_number,
+                taskiq_task_id=scheduled_task.schedule_id
+            )
 
-        await callback.answer(
-            text=f"Уведомления для задачи {task_number} включены на {task.notification_time}",
-            show_alert=True
-        )
+            await callback.answer(
+                text=i18n.get("notifications-on-for-group-task", task_number=task_number, notification_time=task.notification_time),
+                show_alert=True
+            )
+        else:
+            await callback.answer(
+                text=i18n.get("choose-city-or-coords")
+            )
     else:
-        # Выключаем уведомления
+
         if task.taskiq_task_id:
             await redis_source.delete_schedule(task.taskiq_task_id)
 
@@ -636,9 +727,8 @@ async def group_task_toggle_notifications_on_click(
         )
 
         await callback.answer(
-            text=f"Уведомления для задачи {task_number} выключены",
+            text=i18n.get("notifications-off-for-group-task", task_number=task_number),
             show_alert=True
         )
 
-    # Обновляем окно
     await dialog_manager.switch_to(state=WeatherSG.weather_group_task_settings)

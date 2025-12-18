@@ -155,7 +155,7 @@ async def getter_group_task_settings(
     task = await group_task_repo.get_group_task(group_id, task_number)
 
     city = task.city if task.city else "Empty"
-    coords = f"{task.latitude},{task.longitude}" if (task.latitude and task.longitude) else "Empty"
+    coords = f"{task.latitude}, {task.longitude}" if (task.latitude and task.longitude) else "Empty"
     notifications_enabled = i18n.get("notifications-on") if task.notifications_enabled else i18n.get(
         "notifications-off")
 

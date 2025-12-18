@@ -173,3 +173,13 @@ notifications-on = ✅ Daily forecast on
 
 language-group-window =  <b>Please select a language for bot messages in the group</b>
 choose-language = Choose language!
+
+group-not-found = Group not found!
+
+chosen-group =  The { $group_name } group is selected
+
+notifications-on-for-group-task = Notifications for task { $task_number } are enabled at { $notification_time }
+
+notifications-off-for-group-task = Notifications for task { $task_number } are disabled\
+
+choose-city-or-coords = To enable notifications, add a city or coordinates!

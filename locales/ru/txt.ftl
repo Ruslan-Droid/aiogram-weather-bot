@@ -174,3 +174,13 @@ notifications-on = ✅ Рассылка включены
 
 language-group-window =  <b>Пожалуйста, выберите язык сообщений бота в группе</b>
 choose-language = Выбери язык!
+
+group-not-found = Группа не найдена!
+
+chosen-group =  Выбрана группа { $group_name }
+
+notifications-on-for-group-task = Уведомления для задачи { $task_number } включены на { $notification_time }
+
+notifications-off-for-group-task = Уведомления для задачи { $task_number } выключены
+
+choose-city-or-coords = Чтобы включить уведомления добавьте город или координаты!

@@ -11,7 +11,7 @@ class WeatherSG(StatesGroup):
     weather_changing_city = State()
     weather_save_city = State()
     # Group settings
-    weather_group_settings = State()
+    weather_groups_list_to_edit = State()
     weather_edit_group = State()
     weather_edit_group_language = State()
     # to change tasks for groups

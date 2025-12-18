@@ -10,7 +10,7 @@ from aiogram_dialog.widgets.text import Format, Const
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
 from src.bot.dialogs.flows.weather.keyboards import (
-    MAIN_SETTINGS_BUTTON,
+    MAIN_SETTINGS_BUTTON, TASK_SETTINGS_BUTTON,
 )
 from src.bot.dialogs.widgets.i18n import I18nFormat
 from src.bot.dialogs.flows.weather.states import WeatherSG
@@ -19,7 +19,10 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_settings,
     getter_weather_time_settings,
     getter_weather_city_settings,
-    getter_weather_changing_city, getter_weather_group_settings, getter_edit_group_settings, getter_group_task_settings,
+    getter_weather_changing_city,
+    getter_weather_group_settings,
+    getter_edit_group_settings,
+    getter_group_task_settings,
     getter_edit_group_language,
 )
 from src.bot.dialogs.flows.weather.handlers import (
@@ -37,12 +40,22 @@ from src.bot.dialogs.flows.weather.handlers import (
     wrong_city_handler,
     save_city_on_click,
     deny_city_on_click,
-    weather_notification_clicked, go_to_group_settings_on_click, group_click_handler,
-    go_to_group_task1_settings_on_click, go_to_group_task2_settings_on_click, group_task_change_time_on_click,
-    group_settings_change_language_on_click, group_task_toggle_notifications_on_click,
-    go_back_to_group_settings, group_task_time_handler,
-    go_back_to_group_task_settings, group_task_change_city_on_click, group_task_change_coords_on_click,
-    group_task_city_handler, group_task_coords_handler, group_settings_save_language_on_click,
+    weather_notification_clicked,
+    go_to_group_settings_on_click,
+    group_click_handler,
+    go_to_group_task1_settings_on_click,
+    go_to_group_task2_settings_on_click,
+    group_task_change_time_on_click,
+    group_settings_change_language_on_click,
+    group_task_toggle_notifications_on_click,
+    go_back_to_group_settings,
+    group_task_time_handler,
+    go_back_to_group_task_settings,
+    group_task_change_city_on_click,
+    group_task_change_coords_on_click,
+    group_task_city_handler,
+    group_task_coords_handler,
+    group_settings_save_language_on_click, save_group_task_city_on_click,
 )
 
 weather_dialog = Dialog(
@@ -228,7 +241,7 @@ weather_dialog = Dialog(
             id="group_settings_back_button",
             on_click=go_to_main_menu_on_click),
         getter=getter_weather_group_settings,
-        state=WeatherSG.weather_group_settings,
+        state=WeatherSG.weather_groups_list_to_edit,
 
     ),
     # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group
@@ -262,7 +275,7 @@ weather_dialog = Dialog(
     ),
     # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🌎 edit language
     Window(
-Format("{language_group_window}"),
+        Format("{language_group_window}"),
         ScrollingGroup(
             Radio(
                 checked_text=Format("🔘 {item[0]}"),
@@ -359,9 +372,29 @@ Format("{language_group_window}"),
             func=wrong_city_handler,
             content_types=ContentType.ANY
         ),
+        getter=getter_weather_city_settings,
         state=WeatherSG.weather_group_task_changing_city,
     ),
-
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group -> 🏡 edit city -> ✅ save chosen city
+    Window(
+        Format("{current_city}"),
+        Row(
+            # ◀️ back button
+            Button(
+                text=Format("{back_button}"),
+                id="group_city_back_button",
+                on_click=group_task_change_city_on_click,
+            ),
+            # ✅ Save button
+            Button(
+                text=Format("{save_button}"),
+                id="group_city_save_button",
+                on_click=save_group_task_city_on_click,
+            ),
+        ),
+        getter=getter_weather_changing_city,
+        state=WeatherSG.weather_group_task_save_city,
+    ),
     # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group -> 🗺 edit coords
     Window(
         StaticMedia(
@@ -369,11 +402,7 @@ Format("{language_group_window}"),
             type=ContentType.ANIMATION,
         ),
         RequestLocation(I18nFormat("keyboard-coords")),
-        Button(
-            text=Format("{back_button}"),
-            id="group_task_back_button",
-            on_click=go_back_to_group_task_settings,
-        ),
+        TASK_SETTINGS_BUTTON,
         MessageInput(
             func=group_task_coords_handler,
             content_types=ContentType.LOCATION
@@ -385,6 +414,5 @@ Format("{language_group_window}"),
         markup_factory=ReplyKeyboardFactory(resize_keyboard=True),
         state=WeatherSG.weather_group_task_changing_coords,
     ),
-
     name="weather_main_dialog",
 )

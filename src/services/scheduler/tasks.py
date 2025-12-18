@@ -74,7 +74,7 @@ async def update_send_daily_weather_task_for_group(
         group_id: int,
         group_task_number: int,
         taskiq_task_id: str,
-        group_repo: GroupTaskRepository,
+        group_task_repo: GroupTaskRepository,
 ) -> None:
     # delete old task
     await source.delete_schedule(taskiq_task_id)
@@ -90,7 +90,7 @@ async def update_send_daily_weather_task_for_group(
         telegram_chat_id=telegram_chat_id,
     )
     new_task_id = task.schedule_id
-    await group_repo.update_taskiq_task_id(
+    await group_task_repo.update_taskiq_task_id(
         group_id=group_id,
         task_number=group_task_number,
         taskiq_task_id=new_task_id,
