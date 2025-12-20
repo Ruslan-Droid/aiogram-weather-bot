@@ -17,7 +17,7 @@ from fluentogram import TranslatorHub
 from nats_broker.nats_connect import connect_to_nats
 
 from src.bot.dialogs.flows import dialogs
-from src.bot.handlers import routers
+from src.bot.handlers import routers, commands_router, user_status_router, groups_router
 from src.bot.handlers.errors import on_unknown_intent, on_unknown_state
 from src.bot.middlewares.database import DbSessionMiddleware
 from src.bot.middlewares.get_user import GetUserMiddleware
@@ -93,17 +93,28 @@ async def main():
         ExceptionTypeFilter(UnknownState),
     )
 
+    #TODO
+    logger.info("Setting up middlewares for routers")
+    private_middlewares = [
+        DbSessionMiddleware(async_session_maker),
+        GetUserMiddleware(),
+        ShadowBanMiddleware(),
+        TranslatorRunnerMiddleware(),
+    ]
+
+    #TODO
+    for middleware in private_middlewares:
+        commands_router.message.middleware(middleware)
+        commands_router.callback_query.middleware(middleware)
+        user_status_router.my_chat_member.middleware(middleware)
+        groups_router.my_chat_member.middleware(middleware)
+        groups_router.chat_member.middleware(middleware)
+
     logger.info("Including routers")
-    dp.include_routers(*routers)
+    dp.include_routers(commands_router, user_status_router, groups_router)
 
     logger.info("Including dialogs")
     dp.include_routers(*dialogs)
-
-    logger.info("Including middlewares")
-    dp.update.middleware(DbSessionMiddleware(async_session_maker))
-    dp.update.middleware(GetUserMiddleware())
-    dp.update.middleware(ShadowBanMiddleware())
-    dp.update.middleware(TranslatorRunnerMiddleware())
 
     logger.info("Including error middlewares")
     dp.errors.middleware(DbSessionMiddleware(async_session_maker))
