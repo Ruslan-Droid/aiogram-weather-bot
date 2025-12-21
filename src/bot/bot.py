@@ -93,7 +93,6 @@ async def main():
         ExceptionTypeFilter(UnknownState),
     )
 
-    #TODO
     logger.info("Setting up middlewares for routers")
     private_middlewares = [
         DbSessionMiddleware(async_session_maker),
@@ -102,7 +101,7 @@ async def main():
         TranslatorRunnerMiddleware(),
     ]
 
-    #TODO
+    # middleware only for our filters and handlers (not for all updates)
     for middleware in private_middlewares:
         commands_router.message.middleware(middleware)
         commands_router.callback_query.middleware(middleware)
@@ -110,8 +109,12 @@ async def main():
         groups_router.my_chat_member.middleware(middleware)
         groups_router.chat_member.middleware(middleware)
 
+        for dialog in dialogs:
+            dialog.message.middleware(middleware)
+            dialog.callback_query.middleware(middleware)
+
     logger.info("Including routers")
-    dp.include_routers(commands_router, user_status_router, groups_router)
+    dp.include_routers(*routers)
 
     logger.info("Including dialogs")
     dp.include_routers(*dialogs)
