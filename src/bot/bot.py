@@ -21,6 +21,7 @@ from src.bot.handlers import routers, commands_router, user_status_router, group
 from src.bot.handlers.errors import on_unknown_intent, on_unknown_state
 from src.bot.middlewares.database import DbSessionMiddleware
 from src.bot.middlewares.get_user import GetUserMiddleware
+from src.bot.middlewares.get_group import GetGroupMiddleware
 from src.bot.middlewares.i18n import TranslatorRunnerMiddleware
 from src.bot.middlewares.shadow_ban import ShadowBanMiddleware
 
@@ -101,17 +102,26 @@ async def main():
         TranslatorRunnerMiddleware(),
     ]
 
-    # middleware only for our filters and handlers (not for all updates)
+    logger.info("Including private chat middlewares")
     for middleware in private_middlewares:
         commands_router.message.middleware(middleware)
         commands_router.callback_query.middleware(middleware)
         user_status_router.my_chat_member.middleware(middleware)
-        groups_router.my_chat_member.middleware(middleware)
-        groups_router.chat_member.middleware(middleware)
 
         for dialog in dialogs:
             dialog.message.middleware(middleware)
             dialog.callback_query.middleware(middleware)
+
+    logger.info("Including groups middlewares")
+    groups_router.chat_member.middleware(DbSessionMiddleware(async_session_maker))
+    groups_router.chat_member.middleware(GetUserMiddleware())
+    groups_router.chat_member.middleware(GetGroupMiddleware())
+    groups_router.chat_member.middleware(TranslatorRunnerMiddleware())
+
+    groups_router.my_chat_member.middleware(DbSessionMiddleware(async_session_maker))
+    groups_router.my_chat_member.middleware(GetUserMiddleware())
+    groups_router.my_chat_member.middleware(GetGroupMiddleware())
+    groups_router.my_chat_member.middleware(TranslatorRunnerMiddleware())
 
     logger.info("Including routers")
     dp.include_routers(*routers)

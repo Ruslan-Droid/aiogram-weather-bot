@@ -6,7 +6,7 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User
 from fluentogram import TranslatorHub
 
-from src.infrastructure.database.models import UserModel
+from src.infrastructure.database.models import UserModel, GroupModel
 
 logger = logging.getLogger(__name__)
 
@@ -18,24 +18,26 @@ class TranslatorRunnerMiddleware(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
-        user: User = data.get("event_from_user")
-
-        if user is None:
-            return await handler(event, data)
-
+        group_row: GroupModel = data.get("group_row")
         user_row: UserModel = data.get("user_row")
         default_locale = data.get("default_locale")
 
-        if user_row and user_row.language_code:
-            user_lang = user_row.language_code
+        if group_row and group_row.language_code:
+            locale = group_row.language_code
+            logger.debug("Using group language: %s for group %s", locale, group_row.group_telegram_id)
+        elif user_row and user_row.language_code:
+            locale = user_row.language_code
+            logger.debug("Using user language: %s for user %s", locale, user_row.telegram_id)
         else:
-            user_lang = (
+            user: User = data.get("event_from_user")
+
+            locale = (
                 user.language_code
                 if hasattr(user, "language_code") and user.language_code
                 else default_locale
             )
 
         hub: TranslatorHub = data.get("translator_hub")
-        data["i18n"] = hub.get_translator_by_locale(user_lang)
-        logger.debug("Successful loaded translator for user %s", user.id)
+        data["i18n"] = hub.get_translator_by_locale(locale)
+        logger.debug("Successful loaded translator for language: %s", locale)
         return await handler(event, data)

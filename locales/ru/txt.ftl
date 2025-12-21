@@ -137,7 +137,7 @@ bot-update-admin-list =
 
 user-lost-admin-rights = { $name }, больше не сможет настраивать бота для этой группы.
 
-user-lost-admin-rights = { $name }, теперь может настраивать бота для этой группы.
+user-get-admin-rights = { $name }, теперь может настраивать бота для этой группы.
 
 
 group-settings-window =
