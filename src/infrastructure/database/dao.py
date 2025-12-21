@@ -429,6 +429,7 @@ class GroupChatRepository:
             added_by_telegram_id: int | None,
             bot_status: str,
             admin_permissions: dict | None,
+            language_code: str | None = "en",
             is_active: bool = True,
     ) -> GroupModel:
         insert_stmt = pg_insert(GroupModel).values(
@@ -439,6 +440,7 @@ class GroupChatRepository:
             bot_status=bot_status,
             admin_permissions=admin_permissions,
             is_active=is_active,
+            language_code=language_code,
         )
 
         update_dict = {
@@ -624,7 +626,6 @@ class GroupChatRepository:
             logger.error("Error while migration group: %s -> %s, error: %s", old_chat_id, new_chat_id, str(e))
 
 
-
 class GroupTaskRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -686,7 +687,7 @@ class GroupTaskRepository:
             )
             await self.session.execute(stmt)
             await self.session.commit()
-            logger.info("Time for task: %s for group: %s updated successfully",task_number, group_id)
+            logger.info("Time for task: %s for group: %s updated successfully", task_number, group_id)
         except Exception as e:
             await self.session.rollback()
             logger.error("Error update time for task #%s in group id %s: error %s", task_number, group_id, str(e))
@@ -739,7 +740,6 @@ class GroupTaskRepository:
             logger.error("Error update coords for task #%s in group id %s: error %s", task_number, group_id, str(e))
             raise
 
-
     async def update_group_task_language(
             self,
             group_id: int,
@@ -786,9 +786,9 @@ class GroupTaskRepository:
             logger.info("Notification for task: %s for group: %s enabled successfully", task_number, group_id)
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error enable notification for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            logger.error("Error enable notification for task #%s in group id %s: error %s", task_number, group_id,
+                         str(e))
             raise
-
 
     async def disable_group_notification(
             self,
@@ -812,7 +812,8 @@ class GroupTaskRepository:
             logger.info("Notification for task: %s for group: %s disabled successfully", task_number, group_id)
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error disable notification for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            logger.error("Error disable notification for task #%s in group id %s: error %s", task_number, group_id,
+                         str(e))
             raise
 
     async def update_taskiq_task_id(
@@ -835,5 +836,6 @@ class GroupTaskRepository:
             logger.info("Taskiq task for task: %s for group: %s updated successfully", task_number, group_id)
         except Exception as e:
             await self.session.rollback()
-            logger.error("Error update taskiq task id for task #%s in group id %s: error %s", task_number, group_id, str(e))
+            logger.error("Error update taskiq task id for task #%s in group id %s: error %s", task_number, group_id,
+                         str(e))
             raise

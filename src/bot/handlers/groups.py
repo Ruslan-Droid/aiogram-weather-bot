@@ -11,6 +11,7 @@ from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
 from src.bot.services.group_admin_service import sync_group_admins, update_or_create_user_in_groups, \
     update_or_create_group_in_groups_events, update_single_group_admin
 from src.infrastructure.database.dao import GroupChatRepository
+from src.infrastructure.database.models import UserModel
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +25,20 @@ groups_router.chat_member.filter(ChatTypeFilterChatMember(chat_type=["group", "s
 async def bot_added_to_group(
         event: ChatMemberUpdated,
         bot: Bot,
+        user_row: UserModel,
         i18n: TranslatorRunner,
         session: AsyncSession,
 ) -> None:
-    await update_or_create_user_in_groups(
-        event=event,
-        session=session,
-    )
+    if user_row is None:
+        user_row = await update_or_create_user_in_groups(
+            event=event,
+            session=session,
+        )
 
     group = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        user_row=user_row,
     )
 
     # Отправляем сообщение в зависимости от статуса бота
@@ -59,16 +63,20 @@ async def bot_added_to_group(
 @groups_router.my_chat_member(ChatMemberUpdatedFilter(LEAVE_TRANSITION))
 async def bot_kicked_from_group(
         event: ChatMemberUpdated,
+        user_row: UserModel,
         session: AsyncSession,
 ) -> None:
-    await update_or_create_user_in_groups(
-        event=event,
-        session=session,
-    )
+    if user_row is None:
+        user_row = await update_or_create_user_in_groups(
+            event=event,
+            session=session,
+        )
+
     await update_or_create_group_in_groups_events(
         event=event,
         session=session,
-        is_active=False
+        is_active=False,
+        user_row=user_row,
     )
 
 
@@ -94,17 +102,20 @@ async def group_to_supergroup_migration(
 async def bot_admin_promoted(
         event: ChatMemberUpdated,
         bot: Bot,
+        user_row: UserModel,
         i18n: TranslatorRunner,
         session: AsyncSession,
 ) -> None:
-    await update_or_create_user_in_groups(
-        event=event,
-        session=session,
-    )
+    if user_row is None:
+        user_row = await update_or_create_user_in_groups(
+            event=event,
+            session=session,
+        )
 
     group = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        user_row=user_row,
     )
     await event.answer(text=i18n.get("bot-get-admin-rights"))
 
@@ -127,16 +138,19 @@ async def bot_admin_promoted(
 async def bot_admin_demoted(
         event: ChatMemberUpdated,
         session: AsyncSession,
+        user_row: UserModel,
         i18n: TranslatorRunner,
 ) -> None:
-    await update_or_create_user_in_groups(
-        event=event,
-        session=session,
-    )
+    if user_row is None:
+        user_row = await update_or_create_user_in_groups(
+            event=event,
+            session=session,
+        )
 
     await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        user_row=user_row,
     )
 
     await event.answer(text=i18n.get("bot-lost-admin-rights"))
@@ -148,6 +162,7 @@ async def bot_admin_demoted(
 )
 async def user_admin_promoted(
         event: ChatMemberUpdated,
+        user_row: UserModel,
         session: AsyncSession,
         i18n: TranslatorRunner,
 ) -> None:
@@ -160,6 +175,7 @@ async def user_admin_promoted(
     group = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        user_row=user_row,
     )
 
     # Добавляем пользователя как администратора
@@ -182,6 +198,7 @@ async def user_admin_promoted(
 )
 async def user_admin_demoted(
         event: ChatMemberUpdated,
+        user_row: UserModel,
         session: AsyncSession,
         i18n: TranslatorRunner,
 ) -> None:
@@ -195,6 +212,7 @@ async def user_admin_demoted(
     group = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
+        user_row=user_row,
     )
     # Убираем пользователя из администраторов
     await update_single_group_admin(

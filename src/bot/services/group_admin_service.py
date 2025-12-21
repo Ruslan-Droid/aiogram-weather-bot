@@ -103,8 +103,14 @@ async def update_or_create_user_in_groups(
 async def update_or_create_group_in_groups_events(
         event: ChatMemberUpdated,
         session: AsyncSession,
+        user_row: UserModel | None,
         is_active: bool = True,
 ) -> GroupModel:
+    if user_row and user_row.language_code:
+        language_code = user_row.language_code
+    else:
+        language_code = "en"
+
     group_data: GroupData = extract_group_data(event)
 
     group_repo = GroupChatRepository(session)
@@ -115,6 +121,7 @@ async def update_or_create_group_in_groups_events(
         added_by_telegram_id=group_data.added_by_telegram_id,
         bot_status=group_data.bot_status,
         admin_permissions=group_data.bot_permissions,
-        is_active=is_active
+        is_active=is_active,
+        language_code=language_code,
     )
     return group
