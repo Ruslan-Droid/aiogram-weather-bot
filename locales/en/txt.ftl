@@ -183,3 +183,5 @@ notifications-on-for-group-task = Notifications for task { $task_number } are en
 notifications-off-for-group-task = Notifications for task { $task_number } are disabled\
 
 choose-city-or-coords = To enable notifications, add a city or coordinates!
+
+button-with-bot-link = 🤖 Go to bot

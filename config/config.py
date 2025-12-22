@@ -61,6 +61,11 @@ class NatsConfig(BaseModel):
     )
 
 
+class AdminConfig(BaseModel):
+    admin_id: int = Field(..., description="Admin telegram id.")
+    admin_chat_id: int = Field(..., description="Admin telegram chatID.")
+
+
 class AppConfig(BaseModel):
     logs: LogsConfig
     i18n: I18nConfig
@@ -70,6 +75,7 @@ class AppConfig(BaseModel):
     postgres: PostgresConfig
     redis: RedisConfig
     nats: NatsConfig
+    admin: AdminConfig
 
 
 # Инициализация Dynaconf
@@ -138,6 +144,11 @@ def get_config() -> AppConfig:
         delayed_consumer_durable_name=_settings.nats.delayed_consumer_durable_name,
     )
 
+    admin = AdminConfig(
+        admin_id=_settings.admin_id,
+        admin_chat_id=_settings.admin_chat,
+    )
+
     return AppConfig(
         logs=logs,
         i18n=i18n,
@@ -147,4 +158,5 @@ def get_config() -> AppConfig:
         postgres=postgres,
         redis=redis,
         nats=nats,
+        admin=admin,
     )

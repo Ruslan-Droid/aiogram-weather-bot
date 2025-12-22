@@ -184,3 +184,5 @@ notifications-on-for-group-task = Уведомления для задачи { $
 notifications-off-for-group-task = Уведомления для задачи { $task_number } выключены
 
 choose-city-or-coords = Чтобы включить уведомления добавьте город или координаты!
+
+button-with-bot-link = 🤖 Перейти в бота

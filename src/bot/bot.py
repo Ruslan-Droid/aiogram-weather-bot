@@ -1,6 +1,5 @@
 import asyncio
 import logging
-
 import redis
 
 from aiogram import Bot, Dispatcher
@@ -9,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import ExceptionTypeFilter
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
+from aiogram.types import ChatAdministratorRights
 
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
@@ -56,6 +56,22 @@ async def main():
 
     bot = Bot(token=config.bot.token,
               default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)))
+
+    logger.info("Set default bot admin rights")
+    bot_rights = ChatAdministratorRights(
+        is_anonymous=False,
+        can_manage_chat=True,
+        can_delete_messages=True,
+        can_manage_video_chats=False,
+        can_restrict_members=False,
+        can_promote_members=False,
+        can_change_info=False,
+        can_invite_users=False,
+        can_post_stories=False,
+        can_edit_stories=False,
+        can_delete_stories=False,
+    )
+    await bot.set_my_default_administrator_rights(rights=bot_rights, for_channels=False)
 
     storage = RedisStorage(
         redis=redis_client,

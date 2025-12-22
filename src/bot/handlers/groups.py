@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fluentogram import TranslatorRunner
 
 from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
+from src.bot.keyboards.inline_keyboards import get_private_chat_keyboard
 from src.bot.services.group_admin_service import sync_group_admins, update_or_create_user_in_groups, \
     update_or_create_group_in_groups_events, update_single_group_admin
 from src.infrastructure.database.dao import GroupChatRepository
@@ -43,7 +44,7 @@ async def bot_added_to_group(
 
     # Отправляем сообщение в зависимости от статуса бота
     if event.new_chat_member.status == "administrator":
-        await event.answer(text=i18n.get("bot-added-as-admin"))
+        await event.answer(text=i18n.get("bot-added-as-admin"), reply_markup=get_private_chat_keyboard(i18n=i18n))
 
         # Запускаем обновление админов
         await sync_group_admins(
@@ -126,7 +127,7 @@ async def bot_admin_promoted(
             session=session,
             group_id=group.id,
         )
-        await event.answer(text=i18n.get("bot-update-admin-list"))
+        await event.answer(text=i18n.get("bot-update-admin-list"), reply_markup=get_private_chat_keyboard(i18n=i18n))
     except Exception as e:
         await event.answer(text=str(e))
 
