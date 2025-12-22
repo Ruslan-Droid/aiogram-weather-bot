@@ -91,6 +91,21 @@ class UserRepository:
             logger.error("Error creating/updating user by telegram id: %s, error: %s", telegram_id, str(e))
             raise
 
+    async def update_user_tz_region(self, telegram_id: int, tz_region: str) -> None:
+        try:
+            stmt = (
+                update(UserModel)
+                .where(UserModel.telegram_id == telegram_id)
+                .values(tz_region=tz_region)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+            logger.info("Updated time_zone for telegram id: %s", telegram_id)
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error updating time_zone for telegram id: %s, error: %s", telegram_id, str(e))
+            raise
+
     async def update_users_coordinates(
             self,
             telegram_id: int,
@@ -331,7 +346,6 @@ class UserRepository:
             'username': insert_stmt.excluded.username,
             'first_name': insert_stmt.excluded.first_name,
             'last_name': insert_stmt.excluded.last_name,
-            'language_code': insert_stmt.excluded.language_code,
         }
 
         on_conflict_stmt = insert_stmt.on_conflict_do_update(
@@ -431,6 +445,7 @@ class GroupChatRepository:
             admin_permissions: dict | None,
             language_code: str | None = "en",
             is_active: bool = True,
+            tz_region: str | None = "Europe/Moscow",
     ) -> GroupModel:
         insert_stmt = pg_insert(GroupModel).values(
             group_telegram_id=telegram_chat_id,
@@ -441,6 +456,7 @@ class GroupChatRepository:
             admin_permissions=admin_permissions,
             is_active=is_active,
             language_code=language_code,
+            tz_region=tz_region,
         )
 
         update_dict = {
@@ -642,7 +658,12 @@ class GroupTaskRepository:
             logger.error("Error getting tasks by group id %s: %s", group_id, str(e))
             raise
 
-    async def get_group_task(self, group_id: int, task_number: int) -> DailyGroupTaskModel:
+    async def get_group_task(
+            self,
+            group_id: int,
+            task_number: int,
+            user_row: UserModel,
+    ) -> DailyGroupTaskModel:
         try:
             stmt = select(DailyGroupTaskModel).where(
                 DailyGroupTaskModel.group_id == group_id,
@@ -656,7 +677,10 @@ class GroupTaskRepository:
                 task = DailyGroupTaskModel(
                     group_id=group_id,
                     task_number=task_number,
-                    notification_time="09:00",
+                    notification_time=user_row.daily_task.notification_time,
+                    city=user_row.city,
+                    latitude=user_row.latitude,
+                    longitude=user_row.longitude,
                 )
                 self.session.add(task)
                 await self.session.commit()

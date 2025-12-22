@@ -28,7 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
-delay = 60 * 60  # delet message after 1 hour
+delay = 60 * 60 * 12  # delet message after 12 hour
 
 
 # ☁️ Weather now
@@ -332,12 +332,15 @@ async def save_city_on_click(
     session: AsyncSession = dialog_manager.middleware_data.get("session")
     user: UserModel = dialog_manager.middleware_data.get("user_row")
     redis_source: RedisScheduleSource = dialog_manager.middleware_data.get("redis_source")
+    weather_service: WeatherService = dialog_manager.middleware_data.get("weather_service")
 
     user_repo: UserRepository = UserRepository(session)
 
     city_name = dialog_manager.dialog_data["city_name"]
 
     await user_repo.update_user_city(telegram_id=user.telegram_id, city=city_name)
+    tz_region = await weather_service.get_current_time_zone(location=city_name)
+    await user_repo.update_user_tz_region(telegram_id=user.telegram_id, tz_region=tz_region)
 
     task_settings: DailyUserTaskModel = user.daily_task
 
@@ -345,7 +348,7 @@ async def save_city_on_click(
     if task_settings.notifications_enabled:
         await update_send_daily_weather_task(
             source=redis_source,
-            tz_region=user.tz_region,
+            tz_region=tz_region,
             time=task_settings.notification_time,
             location=city_name,
             language=user.language_code,
@@ -588,9 +591,10 @@ async def save_group_task_city_on_click(
     city_name = dialog_manager.dialog_data["city_name"]
 
     await group_task_repo.update_group_task_city(group_id=group_id, task_number=task_number,
-                                            city=city_name)
+                                                 city=city_name)
 
-    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id, task_number=task_number)
+    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id,
+                                                                              task_number=task_number)
 
     # update task with new city if notification enabled
     if task_settings.notifications_enabled:
@@ -643,7 +647,8 @@ async def group_task_coords_handler(
         longitude=message.location.longitude,
         latitude=message.location.latitude)
 
-    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id, task_number=task_number)
+    task_settings: DailyGroupTaskModel = await group_task_repo.get_group_task(group_id=group_id,
+                                                                              task_number=task_number)
 
     # update task with new coords if notification enabled
     if task_settings.notifications_enabled:
@@ -709,7 +714,8 @@ async def group_task_toggle_notifications_on_click(
             )
 
             await callback.answer(
-                text=i18n.get("notifications-on-for-group-task", task_number=task_number, notification_time=task.notification_time),
+                text=i18n.get("notifications-on-for-group-task", task_number=task_number,
+                              notification_time=task.notification_time),
                 show_alert=True
             )
         else:

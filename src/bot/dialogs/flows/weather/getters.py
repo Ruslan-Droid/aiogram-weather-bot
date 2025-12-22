@@ -146,13 +146,15 @@ async def getter_group_task_settings(
         dialog_manager: DialogManager,
         i18n: TranslatorRunner,
         session: AsyncSession,
+        user_row: UserModel,
         **kwargs) -> dict[str, Any]:
+
     group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
     task_number = dialog_manager.dialog_data["selected_task_number"]
 
     # get task from DB
     group_task_repo = GroupTaskRepository(session)
-    task = await group_task_repo.get_group_task(group_id, task_number)
+    task = await group_task_repo.get_group_task(group_id, task_number, user_row)
 
     city = task.city if task.city else "Empty"
     coords = f"{task.latitude}, {task.longitude}" if (task.latitude and task.longitude) else "Empty"

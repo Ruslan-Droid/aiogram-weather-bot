@@ -111,6 +111,11 @@ async def update_or_create_group_in_groups_events(
     else:
         language_code = "en"
 
+    if user_row and user_row.tz_region:
+        tz_region = user_row.tz_region
+    else:
+        tz_region = "Europe/Moscow"
+
     group_data: GroupData = extract_group_data(event)
 
     group_repo = GroupChatRepository(session)
@@ -123,5 +128,6 @@ async def update_or_create_group_in_groups_events(
         admin_permissions=group_data.bot_permissions,
         is_active=is_active,
         language_code=language_code,
+        tz_region=tz_region,
     )
     return group

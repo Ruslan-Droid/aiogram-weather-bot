@@ -1,7 +1,7 @@
 start-hello =
     Hello, <b>{ $username }!</b>
 
-    Send your coordinates to complete registration and receive weather forecasts.
+    Send your coordinates or your city to complete registration and receive weather forecasts.
 
     To send your coordinates, click the paperclip and share the location.
 
@@ -12,6 +12,10 @@ start-finish-registration =
 
     latitude = { $latitude },
     longitude = { $longitude }.
+
+city-finish-registration =
+    City successfully set: { $city }
+
 
 start-change-time-notification =
     Send in the chat the time at which you want to receive the daily weather forecast in the format "XX:XX".

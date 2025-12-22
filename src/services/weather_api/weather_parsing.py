@@ -30,7 +30,7 @@ def parse_weather(weather_data: Dict[str, Any], i18n: TranslatorRunner) -> str:
 
             weather_message = (
                 f"<b>{i18n.get("parsing-weather-forecast-day")}:</b>  <code>{forecast_day}</code>\n"
-                
+
                 f"<b>{city}, {country}</b>\n\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n\n"
             )
@@ -74,3 +74,7 @@ def _forecast_formatting_by_hours(weather_data: Dict[str, Any], i18n: Translator
         res += weather_for_hour
 
     return res
+
+
+def parse_time_zone(data: Dict[str, Any]) -> str:
+    return data["location"]["tz_id"]

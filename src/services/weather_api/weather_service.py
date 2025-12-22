@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 from fluentogram import TranslatorRunner
 
-from src.services.weather_api.weather_parsing import parse_weather
+from src.services.weather_api.weather_parsing import parse_weather, parse_time_zone
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +83,32 @@ class WeatherService:
                     data = await response.json()
                     logger.info("Successful get current weather with: %s", q)
                     return parse_weather(weather_data=data, i18n=i18n)
+
+            except aiohttp.ClientConnectionError as e:
+                logger.error("Connection error: %s", e)
+                raise
+            except aiohttp.ClientError as e:
+                logger.error("Network error: %s", e)
+                raise
+            except asyncio.TimeoutError:
+                logger.error("Timeout requesting weather for location: %s", q)
+                raise
+
+    async def get_current_time_zone(self, location: str | tuple[float, float]) -> str:
+        q = self._check_location_is_city_or_coords(location)
+        params = {
+            "key": self.api_key,
+            "q": q,
+            "lang": "en",
+        }
+        endpoint = "current.json"
+        url = urljoin(self.base_url, endpoint)
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            try:
+                async with session.get(url=url, params=params, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                    data = await response.json()
+                    logger.info("Successful get current time zone with: %s", q)
+                    return parse_time_zone(data=data)
 
             except aiohttp.ClientConnectionError as e:
                 logger.error("Connection error: %s", e)
