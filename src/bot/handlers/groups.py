@@ -11,8 +11,8 @@ from src.bot.filters.chat_type_filters import ChatTypeFilterChatMember
 from src.bot.keyboards.inline_keyboards import get_private_chat_keyboard
 from src.bot.services.group_admin_service import sync_group_admins, update_or_create_user_in_groups, \
     update_or_create_group_in_groups_events, update_single_group_admin
-from src.infrastructure.database.dao import GroupChatRepository
-from src.infrastructure.database.models import UserModel
+from src.infrastructure.database.dao import GroupChatRepository, GroupTaskRepository
+from src.infrastructure.database.models import UserModel, GroupModel, DailyGroupTaskModel
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +73,24 @@ async def bot_kicked_from_group(
             session=session,
         )
 
-    await update_or_create_group_in_groups_events(
+    group: GroupModel = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
         is_active=False,
         user_row=user_row,
     )
+
+    group_tasks_repo = GroupTaskRepository(session)
+
+    tasks: list[DailyGroupTaskModel] = await group_tasks_repo.get_group_tasks(group_id=group.id)
+
+    # off tasks
+    for index, task in enumerate(tasks):
+        if task.notifications_enabled:
+            await group_tasks_repo.disable_group_notification(
+                group_id=group.id,
+                task_number=index + 1,
+            )
 
 
 # group migrate to supergroup
@@ -148,11 +160,23 @@ async def bot_admin_demoted(
             session=session,
         )
 
-    await update_or_create_group_in_groups_events(
+    group: GroupModel = await update_or_create_group_in_groups_events(
         event=event,
         session=session,
         user_row=user_row,
     )
+
+    group_tasks_repo = GroupTaskRepository(session)
+
+    tasks: list[DailyGroupTaskModel] = await group_tasks_repo.get_group_tasks(group_id=group.id)
+
+    # off tasks
+    for index, task in enumerate(tasks):
+        if task.notifications_enabled:
+            await group_tasks_repo.disable_group_notification(
+                group_id=group.id,
+                task_number=index + 1,
+            )
 
     await event.answer(text=i18n.get("bot-lost-admin-rights"))
 

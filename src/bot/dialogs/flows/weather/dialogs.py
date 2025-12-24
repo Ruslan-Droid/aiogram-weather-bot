@@ -7,6 +7,7 @@ from aiogram_dialog.widgets.kbd import Button, Checkbox, RequestLocation, Row, U
 from aiogram_dialog.widgets.markup.reply_keyboard import ReplyKeyboardFactory
 from aiogram_dialog.widgets.media import StaticMedia
 from aiogram_dialog.widgets.text import Format, Const
+from sqlalchemy.orm.base import state_str
 
 from src.bot.dialogs.flows.registration.handlers import location_handler, wrong_location_handler
 from src.bot.dialogs.flows.weather.keyboards import (
@@ -23,7 +24,7 @@ from src.bot.dialogs.flows.weather.getters import (
     getter_weather_group_settings,
     getter_edit_group_settings,
     getter_group_task_settings,
-    getter_edit_group_language,
+    getter_edit_group_language, getter_edit_group_timezone, getter_timezone_changing,
 )
 from src.bot.dialogs.flows.weather.handlers import (
     send_today_weather_on_click,
@@ -55,7 +56,8 @@ from src.bot.dialogs.flows.weather.handlers import (
     group_task_change_coords_on_click,
     group_task_city_handler,
     group_task_coords_handler,
-    group_settings_save_language_on_click, save_group_task_city_on_click,
+    group_settings_save_language_on_click, save_group_task_city_on_click, group_settings_change_time_zone_on_click,
+    group_task_city_for_timezone_handler, save_group_timezone_on_click,
 )
 
 weather_dialog = Dialog(
@@ -253,6 +255,12 @@ weather_dialog = Dialog(
             id="edit_language_for_groups_message_button",
             on_click=group_settings_change_language_on_click,
         ),
+        # ⌚️ edit time zone for group button
+        Button(
+            text=Format("{edit_tz_region_button}"),
+            id="edit_group_tz_region_button",
+            on_click=group_settings_change_time_zone_on_click,
+        ),
         # 🎯 task №1 button
         Button(
             text=Format("{task1_button}"),
@@ -303,6 +311,46 @@ weather_dialog = Dialog(
         ),
         getter=getter_edit_group_language,
         state=WeatherSG.weather_edit_group_language,
+    ),
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> ⌚️ change time zone
+    Window(
+        I18nFormat("start-change-city"),
+        Button(
+            text=Format("{back_button}"),
+            id="group_task_back_button",
+            on_click=go_back_to_group_settings,
+        ),
+        MessageInput(
+            func=group_task_city_for_timezone_handler,
+            content_types=ContentType.TEXT
+        ),
+        MessageInput(
+            func=wrong_city_handler,
+            content_types=ContentType.ANY
+        ),
+        state=WeatherSG.weather_edit_group_timezone,
+        getter=getter_edit_group_timezone,
+
+    ),
+    # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> ⌚️ save time zone
+    Window(
+        Format("{current_timezone}"),
+        Row(
+            # ◀️ back button
+            Button(
+                text=Format("{back_button}"),
+                id="group_timezone_back_button",
+                on_click=group_settings_change_time_zone_on_click,
+            ),
+            # ✅ Save button
+            Button(
+                text=Format("{save_button}"),
+                id="group_timezone_save_button",
+                on_click=save_group_timezone_on_click,
+            ),
+        ),
+        getter=getter_timezone_changing,
+        state=WeatherSG.weather_edit_group_save_timezone,
     ),
     # ☁️ Main weather menu -> 👥⚙️ Groups settings menu -> 👥 edit chosen group -> 🎯 edit chosen task for group
     Window(

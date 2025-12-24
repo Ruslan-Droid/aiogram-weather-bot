@@ -1,7 +1,7 @@
 from aiogram import Bot, Router
 from aiogram.enums import BotCommandScopeType
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, BotCommandScopeChat
+from aiogram.types import Message, BotCommandScopeChat, LinkPreviewOptions
 
 from aiogram_dialog import DialogManager, StartMode
 from fluentogram import TranslatorRunner
@@ -12,6 +12,7 @@ from src.bot.filters.chat_type_filters import ChatTypeFilterMessage, ChatTypeFil
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
 from src.bot.dialogs.flows.registration.states import StartRegistrationSG
 from src.bot.dialogs.flows.weather.states import WeatherSG
+from src.bot.keyboards.inline_keyboards import get_help_keyboard
 from src.infrastructure.database.models import UserModel
 from src.infrastructure.database.dao import UserRepository
 from src.bot.keyboards.menu_button import get_main_menu_commands
@@ -62,7 +63,14 @@ async def command_help_handler(
         message: Message,
         i18n: TranslatorRunner
 ) -> None:
-    await message.answer(text=i18n.get("help-command"))
+    await message.answer(
+        text=i18n.get("help-command"),
+        link_preview_options=LinkPreviewOptions(
+            url="https://github.com/Ruslan-Droid/aiogram-weather-bot",
+            prefer_small_media=True,
+        ),
+        reply_markup=get_help_keyboard(i18n)
+    )
 
 
 @commands_router.message(Command("lang"))

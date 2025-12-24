@@ -59,7 +59,20 @@ start-command-description = Перезапустить бота
 lang-command-description = Настроить язык интерфейса
 help-command-description = Посмотреть справку по работе бота
 
-help-command = Пример.
+help-command =
+    В боте доступны следующие команды:
+
+    /start - перезапуск бота
+    /lang - смена языка
+    /help - информация о боте
+
+    Если у вас пропало окно диалога напишите любое сообщение боту и диалоговаое окно появится вновь.
+
+    По вопросам поддержки: @DarkGrayCaesar
+    Проект на github: https://github.com/Ruslan-Droid/aiogram-weather-bot
+
+support-button = Поддержка
+github-button = Проект на github
 
 back-button = ◀️ Назад
 save-button = ✅ Сохранить
@@ -152,8 +165,8 @@ no-groups = Нет групп
 
 group-current-settings =
     Основные настройки <b>{ $title }</b>:
-
-    🌎 Язык для группы: <b>{ $language }</b>
+    🌎  Язык для группы:  <b>{ $language }</b>
+    ⌚️  Часовой пояс группы:  <b>{ $timezone }</b>
 
     Можно настроить до 2-х рахных ежедневных рассылок погоды в группу.
 
@@ -163,7 +176,12 @@ task2-button = Ежедневная погода №2 🎯
 
 edit-language-for-groups-message = 🌎 Настроить язык для группы
 
+edit-tz-region-button = ⌚️ Настроить часовой пояс для группы
+
 location-is-none = не установлена
+
+timezone-found = По введенному городу найден часовой пояс: <b>{ $timezone }</b>
+timezone-saved = Часовой пояс сохранен успешно: { $timezone }
 
 group-task-settings-window =
     Настройки <b>задачи №{ $task_number }</b>:

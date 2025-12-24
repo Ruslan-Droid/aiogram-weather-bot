@@ -14,6 +14,8 @@ class WeatherSG(StatesGroup):
     weather_groups_list_to_edit = State()
     weather_edit_group = State()
     weather_edit_group_language = State()
+    weather_edit_group_timezone = State()
+    weather_edit_group_save_timezone = State()
     # to change tasks for groups
     weather_edit_group_task = State()  # Choosing task #1 or #2
     weather_group_task_settings = State()  # Edit chosen task

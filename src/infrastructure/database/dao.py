@@ -641,6 +641,26 @@ class GroupChatRepository:
             await self.session.rollback()
             logger.error("Error while migration group: %s -> %s, error: %s", old_chat_id, new_chat_id, str(e))
 
+    async def update_group_timezone(
+            self,
+            group_telegram_id: int,
+            timezone: str
+    ) -> None:
+        try:
+            await self.session.execute(
+                update(GroupModel)
+                .where(GroupModel.group_telegram_id == group_telegram_id)
+                .values(
+                    tz_region=timezone,
+                )
+            )
+            await self.session.commit()
+            logger.info(f"Time zone updated for group: %s, timezone: %s", group_telegram_id, timezone)
+
+        except Exception as e:
+            await self.session.rollback()
+            logger.error("Error while updating timezone for group: %s, error: %s", group_telegram_id, str(e))
+
 
 class GroupTaskRepository:
     def __init__(self, session: AsyncSession):

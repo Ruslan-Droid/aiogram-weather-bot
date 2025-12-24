@@ -82,6 +82,17 @@ async def getter_weather_changing_city(
         "current_city": i18n.get("city-found-successfully", city_name=city_name, city_info=city_info),
     }
 
+async def getter_timezone_changing(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs
+) -> dict[str, Any]:
+    timezone_name = dialog_manager.dialog_data["time_zone_to_save"]
+    return {
+        "back_button": i18n.get("back-button"),
+        "save_button": i18n.get("save-button"),
+        "current_timezone": i18n.get("timezone-found", timezone=timezone_name),
+    }
 
 async def getter_weather_group_settings(
         dialog_manager: DialogManager,
@@ -117,9 +128,14 @@ async def getter_edit_group_settings(
     language = "Русский" if settings["group_language"] == "ru" else "English"
 
     return {
-        "group_current_settings": i18n.get("group-current-settings", title=settings["title"],
-                                           language=language),
+        "group_current_settings": i18n.get(
+            "group-current-settings",
+            title=settings["title"],
+            language=language,
+            timezone=settings["group_tz_region"],
+        ),
         "edit_language_for_groups_message": i18n.get("edit-language-for-groups-message"),
+        "edit_tz_region_button": i18n.get("edit-tz-region-button"),
         "task1_button": i18n.get("task1-button"),
         "task2_button": i18n.get("task2-button"),
         "back_button": i18n.get("back-button"),
@@ -142,13 +158,22 @@ async def getter_edit_group_language(
     }
 
 
+async def getter_edit_group_timezone(
+        dialog_manager: DialogManager,
+        i18n: TranslatorRunner,
+        **kwargs
+) -> dict[str, Any]:
+    return {
+        "back_button": i18n.get("back-button"),
+    }
+
+
 async def getter_group_task_settings(
         dialog_manager: DialogManager,
         i18n: TranslatorRunner,
         session: AsyncSession,
         user_row: UserModel,
         **kwargs) -> dict[str, Any]:
-
     group_id = dialog_manager.dialog_data["selected_group_settings"]["id"]
     task_number = dialog_manager.dialog_data["selected_task_number"]
 

@@ -60,7 +60,21 @@ start-command-description = Restart the bot
 lang-command-description = Configure the interface language
 help-command-description = View the help for the bot
 
-help-commad = Example.
+help-commad =
+    The following commands are available in the bot:
+
+    /start - restart the bot
+    /lang - change language
+    /help - information about bpt
+
+    If the dialog box disappears, type any message to the bot, and the dialog box will reappear.
+
+    For support inquiries: @DarkGrayCaesar
+    Project on Github: https://github.com/Ruslan-Droid/aiogram-weather-bot
+
+support-button = Support
+github-button =  Project on github
+
 
 back-button = ◀️ Back
 save-button = ✅ Save
@@ -152,8 +166,8 @@ no-groups = No groups
 
 group-current-settings =
     Main settings <b>{ $title }</b>:
-
-    🌎 Language for group: <b>{ $language }</b>
+    🌎  Language for group:  <b>{ $language }</b>
+    ⌚️  Timezone for group:  <b>{ $timezone }</b>
 
     You can set up to 2 daily weather alerts to a group.
 
@@ -161,9 +175,14 @@ task1-button = Daily weather №1 🎯
 
 task2-button = Daily weather №2 🎯
 
-edit-language-for-groups-message = 🌎 Change language for group
+edit-language-for-groups-message = 🌎 Change language for а group
+
+edit-tz-region-button = ⌚️ Set up a time zone for a group
 
 location-is-none = is empty
+
+timezone-found = The time zone for the entered city: <b>{ $timezone }</b>
+timezone-saved = Timezone saved successfully: { $timezone }
 
 group-task-settings-window =
     <b>Task №{ $task_number }</b> settings:
