@@ -2,10 +2,10 @@ import logging
 
 from aiogram import Bot
 from fluentogram import TranslatorHub, TranslatorRunner
+from sqlalchemy.ext.asyncio import AsyncSession
 from taskiq import TaskiqDepends, TaskiqState, ScheduledTask
 from taskiq_redis import RedisScheduleSource
 
-from src.infrastructure.database.dao import UserRepository, GroupTaskRepository
 from src.services.scheduler.taskiq_broker import broker, config
 from src.services.weather_api.weather_service import WeatherService
 from src.services.i18n.translator_hub import TranslatorHubFactory
@@ -41,8 +41,11 @@ async def update_send_daily_weather_task(
         language: str,
         telegram_chat_id: int,
         taskiq_task_id: str,
-        user_repo: UserRepository,
+        session: AsyncSession,
 ) -> None:
+    from src.infrastructure.database.dao import UserRepository
+
+    user_repo = UserRepository(session)
     # delete old task
     await source.delete_schedule(taskiq_task_id)
     logger.debug("Schedule task %s from taskiq successful deleted", taskiq_task_id)
@@ -74,8 +77,11 @@ async def update_send_daily_weather_task_for_group(
         group_id: int,
         group_task_number: int,
         taskiq_task_id: str,
-        group_task_repo: GroupTaskRepository,
+        session: AsyncSession,
 ) -> None:
+    from src.infrastructure.database.dao import GroupTaskRepository
+
+    group_task_repo: GroupTaskRepository = GroupTaskRepository(session)
     # delete old task
     await source.delete_schedule(taskiq_task_id)
     logger.debug("Schedule task %s from taskiq successful deleted", taskiq_task_id)

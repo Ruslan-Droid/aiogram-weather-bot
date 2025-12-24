@@ -60,7 +60,7 @@ async def location_handler(
             language=user.language_code,
             telegram_chat_id=user.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
-            user_repo=user_repo,
+            session=session,
         )
 
     await message.answer(text=i18n.get(
@@ -159,7 +159,7 @@ async def registration_save_city_on_click(
             language=user.language_code,
             telegram_chat_id=user.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
-            user_repo=user_repo,
+            session=session,
         )
 
     await callback.message.answer(text=i18n.get(

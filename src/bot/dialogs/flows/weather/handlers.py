@@ -241,7 +241,7 @@ async def time_handler(
                 language=user.language_code,
                 telegram_chat_id=user.telegram_id,
                 taskiq_task_id=task_settings.taskiq_task_id,
-                user_repo=user_repo,
+                session=session,
             )
 
         await message.answer(text=i18n.get("time-changed-successfully", time=time),
@@ -355,7 +355,7 @@ async def save_city_on_click(
             language=user.language_code,
             telegram_chat_id=user.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
-            user_repo=user_repo,
+            session=session,
         )
 
     dialog_manager.dialog_data.clear()
@@ -520,7 +520,7 @@ async def save_group_timezone_on_click(
                 group_id=group_id,
                 group_task_number=index + 1,
                 taskiq_task_id=task.taskiq_task_id,
-                group_task_repo=group_task_repo,
+                session=session,
             )
 
     await callback.answer(text=i18n.get("timezone-saved", timezone=timezone), show_alert=True)
@@ -620,7 +620,7 @@ async def group_task_time_handler(
                 group_id=group_id,
                 taskiq_task_id=group_task.taskiq_task_id,
                 group_task_number=task_number,
-                group_task_repo=group_task_repo,
+                session=session,
             )
 
         await message.answer(text=i18n.get("time-changed-successfully", time=time),
@@ -704,7 +704,7 @@ async def save_group_task_city_on_click(
             group_id=group_id,
             group_task_number=task_number,
             taskiq_task_id=task_settings.taskiq_task_id,
-            group_task_repo=group_task_repo,
+            session=session,
         )
 
     await dialog_manager.switch_to(WeatherSG.weather_group_task_settings)
@@ -762,7 +762,7 @@ async def group_task_coords_handler(
             group_id=group_id,
             group_task_number=task_number,
             taskiq_task_id=task_settings.taskiq_task_id,
-            group_task_repo=group_task_repo,
+            session=session,
         )
 
     await message.answer(text=i18n.get(

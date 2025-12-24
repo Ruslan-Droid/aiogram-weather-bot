@@ -29,8 +29,7 @@ def parse_weather(weather_data: Dict[str, Any], i18n: TranslatorRunner) -> str:
             forecast_day = forecast['forecastday'][0]["date"]
 
             weather_message = (
-                f"<b>{i18n.get("parsing-weather-temperature")}:</b>   🌡️<code>{temp_c}°C</code>\n"
-                f"<b>{i18n.get("parsing-weather-current")}:</b>   <code>{condition}</code> {emoji}\n\n"
+                f"🌡️<code>{temp_c}°C</code> {emoji} <code>{condition}</code> \n\n"
                 f"<b>{city}, {country}</b>\n"
                 f"{i18n.get("parsing-weather-forecast-day")}:  <b>{forecast_day}</b>\n"
                 f"━━━━━━━━━━━━━━━━━━━━\n"
@@ -41,7 +40,7 @@ def parse_weather(weather_data: Dict[str, Any], i18n: TranslatorRunner) -> str:
         else:
             weather_message = (
                 f"<b>{i18n.get("parsing-weather-temperature")}:</b>   <code>{temp_c}°C</code>\n"
-                f"<b>{i18n.get("parsing-weather-current")}:</b>   <code>{condition}</code> {emoji}\n\n"
+                f"<b>{i18n.get("parsing-weather-current")}:</b>  {emoji} <code>{condition}</code> \n\n"
                 f"<b>{city}, {country}</b>\n"
                 f"{i18n.get("parsing-weather-time")}:   <b>{local_time}</b>\n"
                 f"━━━━━━━━━━━━━━━━━━━━"
@@ -62,7 +61,7 @@ def _forecast_formatting_by_hours(weather_data: Dict[str, Any], i18n: Translator
         emoji = get_weather_emoji(hour_data["condition"]["code"])
 
         weather_for_hour = (
-            f"{i18n.get("parsing-weather-time")}:  <code>{hour_data["time"].split()[1]}</code>   🌡️ <code>{hour_data["temp_c"]}°C</code>   "
+            f"{i18n.get("parsing-weather-time")}:  <code>{hour_data["time"].split()[1]}</code>   🌡️ <code>{hour_data["temp_c"]}°C</code>\n"
             f"{emoji} <code>{hour_data["condition"]["text"]}</code> \n"
             f"-------------------------------\n"
         )

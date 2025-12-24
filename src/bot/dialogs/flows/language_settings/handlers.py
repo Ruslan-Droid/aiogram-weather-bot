@@ -69,7 +69,7 @@ async def update_user_lang(
             language=user_row.language_code,
             telegram_chat_id=user_row.telegram_id,
             taskiq_task_id=task_settings.taskiq_task_id,
-            user_repo=user_repo,
+            session=session,
         )
 
     await callback.answer(text=i18n.lang.saved())
