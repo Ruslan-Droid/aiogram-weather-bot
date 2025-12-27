@@ -66,6 +66,14 @@ class AdminConfig(BaseModel):
     admin_chat_id: int = Field(..., description="Admin telegram chatID.")
 
 
+class WebhookConfig(BaseModel):
+    WEB_SERVER_HOST: str = Field(..., description="Webhook server host.")
+    WEB_SERVER_PORT: int = Field(..., description="Webhook server port.")
+    WEBHOOK_PATH: str = Field(..., description="Webhook path name.")
+    WEBHOOK_SECRET: str = Field(..., description="Webhook secret.")
+    WEBHOOK_BASE_URL: str = Field(..., description="Webhook base URL.")
+
+
 class AppConfig(BaseModel):
     logs: LogsConfig
     i18n: I18nConfig
@@ -76,12 +84,13 @@ class AppConfig(BaseModel):
     redis: RedisConfig
     nats: NatsConfig
     admin: AdminConfig
+    webhook: WebhookConfig
 
 
 # Инициализация Dynaconf
 _settings = Dynaconf(
     envvar_prefix=False,  # "DYNACONF",
-    environments=True,  # Автоматически использовать секцию текущей среды
+    environments=True,
     env_switcher="ENV_FOR_DYNACONF",
     settings_files=["settings.toml"],
     load_dotenv=True,
@@ -149,6 +158,14 @@ def get_config() -> AppConfig:
         admin_chat_id=_settings.admin_chat,
     )
 
+    webhook = WebhookConfig(
+        WEB_SERVER_HOST=_settings.WEB_SERVER_HOST,
+        WEB_SERVER_PORT=_settings.WEB_SERVER_PORT,
+        WEBHOOK_PATH=_settings.WEBHOOK_PATH,
+        WEBHOOK_SECRET=_settings.WEBHOOK_SECRET,
+        WEBHOOK_BASE_URL=_settings.WEBHOOK_BASE_URL,
+    )
+
     return AppConfig(
         logs=logs,
         i18n=i18n,
@@ -159,4 +176,5 @@ def get_config() -> AppConfig:
         redis=redis,
         nats=nats,
         admin=admin,
+        webhook=webhook,
     )
