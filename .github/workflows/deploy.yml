@@ -1,0 +1,22 @@
+name: Deploy Bot to Timeweb
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /path/to/your/bot/directory 
+            git pull origin main           
+            docker-compose down            
+            docker-compose pull            
+            docker-compose build --pull    
+            docker-compose up -d           
