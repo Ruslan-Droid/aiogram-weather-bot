@@ -52,9 +52,9 @@ async def update_send_daily_weather_task(
     # create new task
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        # cron=f"{time.split(":")[0]} {time.split(":")[1]} * * *",
-        # cron_offset=tz_region,
-        cron="*/2 * * * *",
+        cron=f"{time.split(":")[1]} {time.split(":")[0]} * * *",
+        cron_offset=tz_region,
+        # cron="*/2 * * * *",
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,
@@ -88,9 +88,9 @@ async def update_send_daily_weather_task_for_group(
     # create new task
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        # cron=f"{time.split(":")[0]} {time.split(":")[1]} * * *",
-        # cron_offset=tz_region,
-        cron="*/2 * * * *",
+        cron=f"{time.split(":")[1]} {time.split(":")[0]} * * *",
+        cron_offset=tz_region,
+        # cron="*/2 * * * *",
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,

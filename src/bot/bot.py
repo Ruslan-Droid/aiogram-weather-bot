@@ -13,8 +13,10 @@ from aiogram.types import ChatAdministratorRights
 from aiogram_dialog import setup_dialogs
 from aiogram_dialog.api.entities import DIALOG_EVENT_NAME
 from aiogram_dialog.api.exceptions import UnknownIntent, UnknownState
+from aiohttp import web
 from fluentogram import TranslatorHub
 from nats_broker.nats_connect import connect_to_nats
+from src.bot.app_factory import create_aiohttp_app, on_startup
 
 from src.bot.dialogs.flows import dialogs
 from src.bot.handlers import routers, commands_router, user_status_router, groups_router
@@ -39,9 +41,25 @@ from config.config import get_config
 logger = logging.getLogger(__name__)
 
 
-async def main():
-    logger.info("Starting bot")
+async def setup_bot_admin_rights(bot: Bot) -> None:
+    logger.info("Setting default bot admin rights")
+    bot_rights = ChatAdministratorRights(
+        is_anonymous=False,
+        can_manage_chat=True,
+        can_delete_messages=True,
+        can_manage_video_chats=False,
+        can_restrict_members=False,
+        can_promote_members=False,
+        can_change_info=False,
+        can_invite_users=False,
+        can_post_stories=False,
+        can_edit_stories=False,
+        can_delete_stories=False,
+    )
+    await bot.set_my_default_administrator_rights(rights=bot_rights, for_channels=False)
 
+
+async def main():
     config = get_config()
 
     nc, js = await connect_to_nats(servers=config.nats.servers)
@@ -57,21 +75,7 @@ async def main():
     bot = Bot(token=config.bot.token,
               default=DefaultBotProperties(parse_mode=ParseMode(config.bot.parse_mode)))
 
-    logger.info("Set default bot admin rights")
-    bot_rights = ChatAdministratorRights(
-        is_anonymous=False,
-        can_manage_chat=True,
-        can_delete_messages=True,
-        can_manage_video_chats=False,
-        can_restrict_members=False,
-        can_promote_members=False,
-        can_change_info=False,
-        can_invite_users=False,
-        can_post_stories=False,
-        can_edit_stories=False,
-        can_delete_stories=False,
-    )
-    await bot.set_my_default_administrator_rights(rights=bot_rights, for_channels=False)
+    await setup_bot_admin_rights(bot=bot)
 
     storage = RedisStorage(
         redis=redis_client,
@@ -99,6 +103,8 @@ async def main():
         weather_service=weather_service,
         city_service=city_service,
         redis_source=redis_source,
+        js=js,
+        delay_del_subject=config.nats.delayed_consumer_subject,
     )
     logger.info("Registering error handlers")
     dp.errors.register(
@@ -110,7 +116,7 @@ async def main():
         ExceptionTypeFilter(UnknownState),
     )
 
-    logger.info("Setting up middlewares for routers")
+    logger.info("Setting up middlewares for private routers")
     private_middlewares = [
         DbSessionMiddleware(async_session_maker),
         GetUserMiddleware(),
@@ -153,6 +159,7 @@ async def main():
 
     logger.info("Setting up dialogs")
     bg_factory = setup_dialogs(dp)
+    dp.workflow_data.update(bg_factory=bg_factory)
 
     logger.info("Including observers middlewares")
     dp.observers[DIALOG_EVENT_NAME].outer_middleware(DbSessionMiddleware(async_session_maker))
@@ -164,15 +171,15 @@ async def main():
         logger.info("Starting taskiq broker")
         await broker.startup()
 
-    # Launch polling and delayed message consumer
+    logger.info("Creating web app")
+    app = create_aiohttp_app(dp=dp, bot=bot, config=config)
+
+    delayed_consumer_task = None
+    runner = None
+
     try:
-        await asyncio.gather(
-            dp.start_polling(
-                bot,
-                js=js,
-                delay_del_subject=config.nats.delayed_consumer_subject,
-                bg_factory=bg_factory,
-            ),
+        await on_startup(bot=bot, config=config)
+        delayed_consumer_task = asyncio.create_task(
             start_delayed_consumer(
                 nc=nc,
                 js=js,
@@ -180,11 +187,34 @@ async def main():
                 subject=config.nats.delayed_consumer_subject,
                 stream=config.nats.delayed_consumer_stream,
                 durable_name=config.nats.delayed_consumer_durable_name,
-            ),
+            )
         )
+
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(
+            runner,
+            config.webhook.WEB_SERVER_HOST,
+            config.webhook.WEB_SERVER_PORT
+        )
+        await site.start()
+        logger.info("Webhook server started on %s: %s", config.webhook.WEB_SERVER_HOST, config.webhook.WEB_SERVER_PORT)
+        logger.info("Webhook URL: %s%s", config.webhook.WEBHOOK_BASE_URL, config.webhook.WEBHOOK_PATH)
+
+        await asyncio.Future()
+    except KeyboardInterrupt:
+        logger.info("Received keyboard interrupt, shutting down...")
     except Exception as e:
         logger.exception(e)
     finally:
+        if delayed_consumer_task:
+            delayed_consumer_task.cancel()
+            logger.info("delayed_consumer_task cancelled")
+        if runner:
+            await runner.cleanup()
+            logger.info("runner cleaned up")
+        await bot.session.close()
+        logger.info("Bot session closed")
         await nc.close()
         logger.info("Connection to NATS closed")
         await cache_pool.close()
