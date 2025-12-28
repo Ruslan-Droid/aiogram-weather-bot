@@ -2,7 +2,7 @@ name: Deploy Weather Bot to Server
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   workflow_dispatch:
 
 env:
