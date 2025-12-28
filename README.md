@@ -237,8 +237,3 @@ After this you can check the NATS version with the command:
 ```bash
 nats --version
 ```
-
-## TODO
-
-1. Add mailing service
-2. Set up a CICD pipeline using Docker and GitHub Actions
