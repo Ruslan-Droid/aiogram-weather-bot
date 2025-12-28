@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_DIR: "~/projects/Weather-telegram-bot"
+  PROJECT_DIR: "home/root/projects/Weather-telegram-bot"
   SERVICE_NAME: "weather-telegram-bot"
   WORKER_SERVICE_NAME: "weather-telegram-bot-worker"
   SCHEDULER_SERVICE_NAME: "weather-telegram-bot-scheduler"
@@ -27,16 +27,21 @@ jobs:
 
       - name: Install and Start Tunnelmole
         run: |
-          # Устанавливаем Tunnelmole глобально
           npm install -g tunnelmole
-          # Запускаем туннель на порту 8000 (или на том, который слушает ваш бот) в фоне
-          tmole 8000 > tunnel_output.txt 2>&1 &
-          sleep 5 # Даем время на запуск
-          # Извлекаем публичный URL из вывода
-          TUNNEL_URL=$(grep -o 'https://[^ ]*.tunnelmole.net' tunnel_output.txt | head -n1)
-          # Сохраняем URL в переменную окружения для последующих шагов
+          timeout 30 tmole 8000 > tunnel_output.txt 2>&1 &
+          sleep 15  # Увеличиваем время ожидания
+
+          TUNNEL_URL=$(grep -o 'https://[^ ]*\.tunnelmole\.net' tunnel_output.txt | head -n1 || echo "")
+
+          if [ -z "$TUNNEL_URL" ]; then
+            echo "❌ Не удалось получить Tunnelmole URL"
+            echo "Вывод Tunnelmole:"
+            cat tunnel_output.txt
+            exit 1  # Прерываем workflow при ошибке
+          fi
+
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
-          echo "Public URL for webhook: $TUNNEL_URL"
+          echo "✅ Public URL: $TUNNEL_URL"
 
       - name: Update .env on Server with Webhook URL
         uses: appleboy/ssh-action@v1.0.3
