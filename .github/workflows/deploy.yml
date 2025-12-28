@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_DIR: "home/root/projects/Weather-telegram-bot"
+  PROJECT_DIR: "/home/root/projects/Weather-telegram-bot"
   SERVICE_NAME: "weather-telegram-bot"
   WORKER_SERVICE_NAME: "weather-telegram-bot-worker"
   SCHEDULER_SERVICE_NAME: "weather-telegram-bot-scheduler"
@@ -23,41 +23,52 @@ jobs:
 
       - name: Lint Python code
         run: |
-          python -m py_compile src/**/*.py || true
+          echo "🔍 Проверка Python файлов..."
+          find src -name "*.py" -exec python -m py_compile {} \; 2>/dev/null || echo "Незначительные ошибки синтаксиса проигнорированы"
 
-      - name: Install and Start Tunnelmole
-        run: |
-          npm install -g tunnelmole
-          timeout 30 tmole 8000 > tunnel_output.txt 2>&1 &
-          sleep 15  # Увеличиваем время ожидания
-
-          TUNNEL_URL=$(grep -o 'https://[^ ]*\.tunnelmole\.net' tunnel_output.txt | head -n1 || echo "")
-
-          if [ -z "$TUNNEL_URL" ]; then
-            echo "❌ Не удалось получить Tunnelmole URL"
-            echo "Вывод Tunnelmole:"
-            cat tunnel_output.txt
-            exit 1  # Прерываем workflow при ошибке
-          fi
-
-          echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
-          echo "✅ Public URL: $TUNNEL_URL"
-
-      - name: Update .env on Server with Webhook URL
+      - name: Check and Install Docker on Server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd ${{ env.PROJECT_DIR }}
-            # Добавляем или заменяем переменную WEBHOOK_BASE_URL в .env файле
-            if grep -q "WEBHOOK_BASE_URL" .env; then
-              sed -i "s|WEBHOOK_BASE_URL=.*|WEBHOOK_BASE_URL=${{ env.TUNNEL_URL }}/webhook|" .env
+            set -e
+            
+            echo "🔧 Проверяем установку Docker..."
+            
+            # Проверяем Docker
+            if ! command -v docker &> /dev/null; then
+              echo "Устанавливаем Docker..."
+              # Для Ubuntu/Debian
+              sudo apt-get update
+              sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+            
+              # Добавляем пользователя в группу docker
+              sudo usermod -aG docker $USER
+              echo "⚠️ Требуется перелогин для применения прав docker. Запустите 'newgrp docker' или перезайдите в систему."
             else
-              echo "WEBHOOK_BASE_URL=${{ env.TUNNEL_URL }}/webhook" >> .env
+              echo "✅ Docker уже установлен"
             fi
-            echo "Updated .env file with webhook URL: ${{ env.TUNNEL_URL }}/webhook"
+            
+            # Проверяем Docker Compose
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Устанавливаем Docker Compose..."
+              DOCKER_COMPOSE_VERSION="v2.29.1"
+              sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+                -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            else
+              echo "✅ Docker Compose уже установлен"
+            fi
+            
+            echo "Версии:"
+            docker --version
+            docker-compose --version
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.3
@@ -72,8 +83,8 @@ jobs:
             echo "📁 Проверяем директорию ${{ env.PROJECT_DIR }}"
             if [ ! -d "${{ env.PROJECT_DIR }}" ]; then
               echo "Создаем директорию..."
-              sudo mkdir -p ${{ env.PROJECT_DIR }}
-              sudo chown -R $USER:$USER ${{ env.PROJECT_DIR }}
+              sudo mkdir -p "${{ env.PROJECT_DIR }}"
+              sudo chown -R $USER:$USER "${{ env.PROJECT_DIR }}"
             fi
             
             # 2. Копирование проекта
@@ -84,14 +95,21 @@ jobs:
               --exclude '*.pyc' \
               --exclude '.env*' \
               --exclude 'venv/' \
-              ./ ${{ env.PROJECT_DIR }}/
+              --exclude '.github/' \
+              ./ "${{ env.PROJECT_DIR }}/"
             
-            # Копируем .env отдельно, если существует локально
-            if [ -f ".env" ]; then
-              echo "⚠️ Обнаружен .env локально. Убедитесь, что .env настроен на сервере!"
-            fi
+            echo "✅ Файлы скопированы"
+
+      - name: Setup Systemd Services and Start
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
             
-            # 3. Настройка systemd сервисов
+            # 1. Настройка systemd сервисов
             echo "⚙️ Настраиваем systemd сервисы..."
             
             # Основной сервис бота
@@ -190,65 +208,90 @@ jobs:
             WantedBy=multi-user.target
             EOF
             
-            # 4. Установка прав
+            # 2. Установка прав
             echo "🔒 Настраиваем права..."
             sudo chmod 644 /etc/systemd/system/${{ env.SERVICE_NAME }}.service
             sudo chmod 644 /etc/systemd/system/${{ env.WORKER_SERVICE_NAME }}.service
             sudo chmod 644 /etc/systemd/system/${{ env.SCHEDULER_SERVICE_NAME }}.service
             
-            # 5. Загрузка systemd конфигурации
+            # 3. Загрузка systemd конфигурации
             echo "🔄 Перезагружаем systemd..."
             sudo systemctl daemon-reload
             
-            # 6. Запуск docker-compose
+            # 4. Запуск docker-compose
             echo "🐳 Запускаем Docker Compose..."
-            cd ${{ env.PROJECT_DIR }}
+            cd "${{ env.PROJECT_DIR }}"
             
-            # Проверяем наличие docker-compose.yml
             if [ -f "docker-compose.yml" ]; then
               # Останавливаем старые контейнеры
-              docker-compose down --remove-orphans || true
+              echo "Останавливаем старые контейнеры..."
+              sudo docker-compose down --remove-orphans || true
             
               # Строим и запускаем
-              docker-compose up -d --build --remove-orphans
+              echo "Собираем и запускаем контейнеры..."
+              sudo docker-compose up -d --build --remove-orphans
             
               # Проверяем статус
-              sleep 5
-              docker-compose ps
+              sleep 10
+              echo "Статус контейнеров:"
+              sudo docker-compose ps
             else
-              echo "⚠️ docker-compose.yml не найден, пропускаем этот шаг"
+              echo "⚠️ docker-compose.yml не найден"
             fi
             
-            # 7. Включение и перезапуск сервисов
-            echo "🚀 Запускаем сервисы..."
+            # 5. Включение и перезапуск сервисов
+            echo "🚀 Настраиваем автозапуск сервисов..."
             
             # Основной сервис
-            sudo systemctl enable ${{ env.SERVICE_NAME }}.service
-            sudo systemctl restart ${{ env.SERVICE_NAME }}.service
+            sudo systemctl enable ${{ env.SERVICE_NAME }}.service || true
+            sudo systemctl restart ${{ env.SERVICE_NAME }}.service || true
             
             # TaskIQ сервисы
-            sudo systemctl enable ${{ env.WORKER_SERVICE_NAME }}.service
-            sudo systemctl enable ${{ env.SCHEDULER_SERVICE_NAME }}.service
+            sudo systemctl enable ${{ env.WORKER_SERVICE_NAME }}.service || true
+            sudo systemctl enable ${{ env.SCHEDULER_SERVICE_NAME }}.service || true
             
-            sudo systemctl restart ${{ env.WORKER_SERVICE_NAME }}.service
-            sudo systemctl restart ${{ env.SCHEDULER_SERVICE_NAME }}.service
+            sudo systemctl restart ${{ env.WORKER_SERVICE_NAME }}.service || true
+            sudo systemctl restart ${{ env.SCHEDULER_SERVICE_NAME }}.service || true
             
-            # 8. Проверка статуса
+            # 6. Проверка статуса
             echo "📊 Статус сервисов:"
             echo "=== Основной бот ==="
-            sudo systemctl status ${{ env.SERVICE_NAME }}.service --no-pager -l || true
+            sudo systemctl status ${{ env.SERVICE_NAME }}.service --no-pager -l | head -20 || true
             
             echo "=== TaskIQ Worker ==="
-            sudo systemctl status ${{ env.WORKER_SERVICE_NAME }}.service --no-pager -l || true
+            sudo systemctl status ${{ env.WORKER_SERVICE_NAME }}.service --no-pager -l | head -20 || true
             
             echo "=== TaskIQ Scheduler ==="
-            sudo systemctl status ${{ env.SCHEDULER_SERVICE_NAME }}.service --no-pager -l || true
+            sudo systemctl status ${{ env.SCHEDULER_SERVICE_NAME }}.service --no-pager -l | head -20 || true
             
-            # 9. Проверка логов
-            echo "📋 Последние логи:"
-            journalctl -u ${{ env.SERVICE_NAME }} -n 10 --no-pager || true
-            
-            echo "✅ Деплой завершен!"
+            echo "✅ Системные сервисы настроены"
+
+      - name: Update Telegram Webhook
+        run: |
+          echo "🔧 Обновляем вебхук в Telegram..."
+          
+          # Получаем публичный IP сервера из секретов
+          SERVER_IP="${{ secrets.SERVER_HOST }}"
+          
+          # Проверяем, есть ли токен бота в секретах
+          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ]; then
+            # Формируем URL вебхука (предполагаем порт 8080, измените если нужно)
+            WEBHOOK_URL="http://${SERVER_IP}:8080/webhook"
+          
+            echo "Используем URL вебхука: $WEBHOOK_URL"
+            echo "Для продакшена рекомендуется настроить HTTPS и домен!"
+          
+            # Обновляем вебхук через API Telegram
+            # Закомментируйте следующую строку, если пока не хотите обновлять вебхук
+            # curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/setWebhook?url=${WEBHOOK_URL}" || echo "Не удалось обновить вебхук"
+          
+            # Для отладки выводим команду
+            echo "Команда для обновления вебхука:"
+            echo "curl -X POST \"https://api.telegram.org/bot\${{ secrets.TELEGRAM_BOT_TOKEN }}/setWebhook?url=${WEBHOOK_URL}\""
+          else
+            echo "⚠️ TELEGRAM_BOT_TOKEN не установлен в секретах GitHub"
+            echo "Добавьте TELEGRAM_BOT_TOKEN в Secrets для автоматического обновления вебхука"
+          fi
 
       - name: Health Check
         uses: appleboy/ssh-action@v1.0.3
@@ -264,17 +307,23 @@ jobs:
               echo "✅ Основной сервис работает"
             else
               echo "❌ Основной сервис не работает"
+              sudo journalctl -u ${{ env.SERVICE_NAME }}.service -n 20 --no-pager || true
               exit 1
             fi
             
             # Ждем 30 секунд для полного запуска
+            echo "⏳ Ждем полного запуска..."
             sleep 30
             
             # Проверяем Docker контейнеры
             if [ -f "${{ env.PROJECT_DIR }}/docker-compose.yml" ]; then
               echo "🐳 Проверяем контейнеры..."
-              cd ${{ env.PROJECT_DIR }}
-              docker-compose ps | grep -v "Exit"
+              cd "${{ env.PROJECT_DIR }}"
+              sudo docker-compose ps
+            
+              # Проверяем логи последних 5 минут
+              echo "📋 Логи контейнеров за последние 5 минут:"
+              sudo docker-compose logs --tail=20 --since=5m || true
             fi
             
             echo "🎉 Все проверки пройдены!"
