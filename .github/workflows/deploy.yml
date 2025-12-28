@@ -29,8 +29,21 @@ jobs:
       - name: Validate Docker Compose
         run: |
           echo "🐳 Проверка docker-compose.yml..."
+
+          # 1. Устанавливаем Docker Compose (если его нет)
+          if ! command -v docker-compose &> /dev/null; then
+            echo "Устанавливаем Docker Compose..."
+            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
+              -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            docker-compose --version
+          fi
+
+          # 2. Проверяем файл docker-compose.yml
           if [ -f "docker-compose.yml" ]; then
             docker-compose config --quiet
+            echo "✅ docker-compose.yml валиден"
           else
             echo "⚠️ docker-compose.yml не найден"
           fi
