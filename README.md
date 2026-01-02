@@ -27,113 +27,110 @@ This is a weather bot written in python using the `aiogram` framework
 
 ```
 📁 aiogram-weather-bot/
-├───📁.github
-│   └───📁 workflows
-│        ├─── deploy.yml
-│        └───  rollback.yml
-├───📁 config
-│   ├───  config.py
-│   └─── settings.toml      
-├───📁 locales
-│   ├───📁 en
-│   │    └─── txt.ftl      
-│   └───📁 ru
-│           txt.ftl
-├───📁 migration
-│   ├─── env.py
-│   ├─── script.py.mako  
-│   └───📁 versions      
-├───📁 nats_broker
-│   ├─── nats_connect.py
-│   │   
-│   ├───📁 config
-│   │    └─── server.conf
-│   │       
-│   └───📁 migrations
-│        └─── create_stream.py  
-├───📁 src
-│   ├───📁 bot
-│   │   │   app_factory.py
-│   │   │   bot.py
-│   │   │   __init__.py 
-│   │   ├───📁 dialogs
-│   │   │   ├───📁 flows
-│   │   │   │   │   __init__.py
-│   │   │   │   │   
-│   │   │   │   ├───📁 language_settings
-│   │   │   │   │   │   dialogs.py
-│   │   │   │   │   │   getters.py
-│   │   │   │   │   │   handlers.py
-│   │   │   │   │   │   keyboards.py
-│   │   │   │   │   │   states.py        
-│   │   │   │   ├───📁 registration
-│   │   │   │   │   │   dialogs.py
-│   │   │   │   │   │   getters.py
-│   │   │   │   │   │   handlers.py
-│   │   │   │   │   │   keyboards.py
-│   │   │   │   │   │   states.py 
-│   │   │   │   │   ├───📁 media
-│   │   │   │   │   │       new.mp4          
-│   │   │   │   ├───📁 weather
-│   │   │   │   │   │   dialogs.py
-│   │   │   │   │   │   getters.py
-│   │   │   │   │   │   handlers.py
-│   │   │   │   │   │   keyboards.py
-│   │   │   │   │   │   states.py         
-│   │   │   └───📁 widgets
-│   │   │       │   i18n.py      
-│   │   ├───📁 enums
-│   │   │   │   actions.py
-│   │   │   │   group_data.py         
-│   │   ├───📁 filters
-│   │   │   │   chat_type_filters.py         
-│   │   ├───📁 handlers
-│   │   │   │   commands.py
-│   │   │   │   errors.py
-│   │   │   │   groups.py
-│   │   │   │   user_statuses.py
-│   │   │   │   __init__.py          
-│   │   ├───📁 keyboards
-│   │   │   │   inline_keyboards.py
-│   │   │   │   menu_button.py      
-│   │   ├───📁 middlewares
-│   │   │   │   database.py
-│   │   │   │   get_group.py
-│   │   │   │   get_user.py
-│   │   │   │   i18n.py
-│   │   │   │   shadow_ban.py       
-│   │   ├───📁 services
-│   │   │   │   group_admin_service.py
-│   │   │   │   time_checker.py    
-│   │   ├───📁 states
-│   │   │   │   states.py          
-│   ├───📁 infrastructure
-│   │   ├───📁 cache
-│   │   │   │   connect_to_redis_pool.py
-│   │   │   │   __init__.py        
-│   │   └───📁 database
-│   │       │   dao.py
-│   │       │   db.py
-│   │       │   models.py    
-│   ├───📁 services
-│   │   ├───📁 delay_service
-│   │   │   │   consumer.py
-│   │   │   │   publisher.py
-│   │   │   │   start_consumer.py   
-│   │   │   ├───📁 models
-│   │   │   │   │   delayed_messages.py          
-│   │   ├───📁 i18n
-│   │   │   │   translator_hub.py         
-│   │   ├───📁 open_street_map_api
-│   │   │   │   city_parsing.py
-│   │   │   │   city_service.py          
-│   │   ├───📁 scheduler
-│   │   │   │   taskiq_broker.py
-│   │   │   │   tasks.py        
-│   │   └───📁 weather_api
-│   │       │   weather_emojis.py
-│   │       │   weather_parsing.py
-│   │       │   weather_service.py
+├── 📁 .github
+│   └── 📁 workflows
+│       ├── deploy.yml
+│       └── rollback.yml
+├── 📁 config
+│   ├── config.py
+│   └── settings.toml
+├── 📁 locales
+│   ├── 📁 en
+│   │   └── txt.ftl
+│   └── 📁 ru
+│       └── txt.ftl
+├── 📁 migration
+│   ├── env.py
+│   ├── script.py.mako
+│   └── 📁 versions
+├── 📁 nats_broker
+│   ├── nats_connect.py
+│   ├── 📁 config
+│   │   └── server.conf
+│   └── 📁 migrations
+│       └── create_stream.py
+├── 📁 src
+│   ├── 📁 bot
+│   │   ├── app_factory.py
+│   │   ├── bot.py
+│   │   ├── __init__.py
+│   │   ├── 📁 dialogs
+│   │   │   ├── 📁 flows
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── 📁 language_settings
+│   │   │   │   │   ├── dialogs.py
+│   │   │   │   │   ├── getters.py
+│   │   │   │   │   ├── handlers.py
+│   │   │   │   │   ├── keyboards.py
+│   │   │   │   │   └── states.py
+│   │   │   │   ├── 📁 registration
+│   │   │   │   │   ├── dialogs.py
+│   │   │   │   │   ├── getters.py
+│   │   │   │   │   ├── handlers.py
+│   │   │   │   │   ├── keyboards.py
+│   │   │   │   │   ├── states.py
+│   │   │   │   │   └── 📁 media
+│   │   │   │   │       └── new.mp4
+│   │   │   │   └── 📁 weather
+│   │   │   │       ├── dialogs.py
+│   │   │   │       ├── getters.py
+│   │   │   │       ├── handlers.py
+│   │   │   │       ├── keyboards.py
+│   │   │   │       └── states.py
+│   │   │   └── 📁 widgets
+│   │   │       └── i18n.py
+│   │   ├── 📁 enums
+│   │   │   ├── actions.py
+│   │   │   └── group_data.py
+│   │   ├── 📁 filters
+│   │   │   └── chat_type_filters.py
+│   │   ├── 📁 handlers
+│   │   │   ├── commands.py
+│   │   │   ├── errors.py
+│   │   │   ├── groups.py
+│   │   │   ├── user_statuses.py
+│   │   │   └── __init__.py
+│   │   ├── 📁 keyboards
+│   │   │   ├── inline_keyboards.py
+│   │   │   └── menu_button.py
+│   │   ├── 📁 middlewares
+│   │   │   ├── database.py
+│   │   │   ├── get_group.py
+│   │   │   ├── get_user.py
+│   │   │   ├── i18n.py
+│   │   │   └── shadow_ban.py
+│   │   ├── 📁 services
+│   │   │   ├── group_admin_service.py
+│   │   │   └── time_checker.py
+│   │   └── 📁 states
+│   │       └── states.py
+│   ├── 📁 infrastructure
+│   │   ├── 📁 cache
+│   │   │   ├── connect_to_redis_pool.py
+│   │   │   └── __init__.py
+│   │   └── 📁 database
+│   │       ├── dao.py
+│   │       ├── db.py
+│   │       └── models.py
+│   └── 📁 services
+│       ├── 📁 delay_service
+│       │   ├── consumer.py
+│       │   ├── publisher.py
+│       │   ├── start_consumer.py
+│       │   └── 📁 models
+│       │       └── delayed_messages.py
+│       ├── 📁 i18n
+│       │   └── translator_hub.py
+│       ├── 📁 open_street_map_api
+│       │   ├── city_parsing.py
+│       │   └── city_service.py
+│       ├── 📁 scheduler
+│       │   ├── taskiq_broker.py
+│       │   └── tasks.py
+│       └── 📁 weather_api
+│           ├── weather_emojis.py
+│           ├── weather_parsing.py
+│           └── weather_service.py
 ├── .env
 ├── .env.example
 ├── .gitignore
