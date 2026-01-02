@@ -29,28 +29,28 @@ This is a weather bot written in python using the `aiogram` framework
 📁 aiogram-weather-bot/
 ├───📁.github
 │   └───📁 workflows
-│           deploy.yml
-│           rollback.yml
+│        ├─── deploy.yml
+│        └───  rollback.yml
 ├───📁 config
-│   │   config.py
-│   │   settings.toml      
+│   ├───  config.py
+│   └─── settings.toml      
 ├───📁 locales
 │   ├───📁 en
-│   │       txt.ftl      
+│   │    └─── txt.ftl      
 │   └───📁 ru
 │           txt.ftl
 ├───📁 migration
-│   │   env.py
-│   │   script.py.mako  
-│   ├───📁 versions      
+│   ├─── env.py
+│   ├─── script.py.mako  
+│   └───📁 versions      
 ├───📁 nats_broker
-│   │   nats_connect.py
+│   ├─── nats_connect.py
 │   │   
 │   ├───📁 config
-│   │       server.conf
+│   │    └─── server.conf
 │   │       
-│   ├───📁 migrations
-│   │   │   create_stream.py  
+│   └───📁 migrations
+│        └─── create_stream.py  
 ├───📁 src
 │   ├───📁 bot
 │   │   │   app_factory.py
