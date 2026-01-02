@@ -214,26 +214,3 @@ taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 12. Run `main.py` to check the functionality of the template.
 
 13. You can fill the template with the functionality you need.
-
-## Developer tools
-
-For convenient interaction with nats-server you need to install nats cli tool. For macOS you can do this through the
-homebrew package manager. Run the commands:
-
-```bash
-brew tap nats-io/nats-tools
-brew install nats-io/nats-tools/nats
-```
-
-For linux:
-
-```bash
-curl -sf https://binaries.nats.dev/nats-io/natscli/nats@latest | sh
-sudo mv nats /usr/local/bin/
-```
-
-After this you can check the NATS version with the command:
-
-```bash
-nats --version
-```
