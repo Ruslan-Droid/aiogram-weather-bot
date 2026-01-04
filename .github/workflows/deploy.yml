@@ -3,7 +3,6 @@ name: Deploy Weather Bot to Server
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:
 
 env:
   PROJECT_DIR: "/home/root/projects/Weather-telegram-bot"
@@ -12,12 +11,12 @@ env:
   SCHEDULER_SERVICE_NAME: "weather-telegram-bot-scheduler"
 
 jobs:
-  deploy:
+  deploy: # name for jub
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -34,9 +33,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            
             echo "🔧 Проверяем установку Docker..."
-            
             # Проверяем Docker
             if ! command -v docker &> /dev/null; then
               echo "Устанавливаем Docker..."
