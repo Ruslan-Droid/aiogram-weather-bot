@@ -1,5 +1,5 @@
-<img src="https://github.com/Ruslan-Droid/aiogram-weather-bot/actions/workflows/deploy.yml/badge.svg?branch=master" />
 # Aiogram 3 Weather Bot
+<img src="https://github.com/Ruslan-Droid/aiogram-weather-bot/actions/workflows/deploy.yml/badge.svg?branch=master" />
 
 https://t.me/KLG_Weather_Bot
 
