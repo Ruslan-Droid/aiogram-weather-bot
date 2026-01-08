@@ -1,4 +1,3 @@
-Deploy status<br>
 <img src="https://github.com/Ruslan-Droid/aiogram-weather-bot/actions/workflows/deploy.yml/badge.svg?branch=master" />
 # Aiogram 3 Weather Bot
 
