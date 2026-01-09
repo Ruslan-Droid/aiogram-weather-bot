@@ -25,80 +25,57 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check and Install Docker on Server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Connect to server and check/install Docker
+        uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            set -e
-            echo "🔧 Проверяем установку Docker..."
-            # Проверяем Docker
-            if ! command -v docker &> /dev/null; then
-              echo "Устанавливаем Docker..."
-              # Для Ubuntu/Debian
-              sudo apt-get update
-              sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-              echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-              sudo apt-get update
-              sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-            
-              # Добавляем пользователя в группу docker
-              sudo usermod -aG docker $USER
-              echo "⚠️ Требуется перелогин для применения прав docker. Запустите 'newgrp docker' или перезайдите в систему."
+            if docker --version 2>/dev/null; then
+              echo "✅ Docker is already installed."
+              echo "Version: $(docker --version)"
             else
-              echo "✅ Docker уже установлен"
+              echo "🔄 Docker not found. Installing..."
+              apt-get update
+              apt-get install -y docker.io
+              systemctl start docker
+              systemctl enable docker
+              echo "✅ Docker installation complete. Version: $(docker --version)"
             fi
-            
-            # Проверяем Docker Compose
-            if ! command -v docker-compose &> /dev/null; then
-              echo "Устанавливаем Docker Compose..."
-              DOCKER_COMPOSE_VERSION="v2.29.1"
-              sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
-                -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Check and install UV on Server
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            if uv --version &>/dev/null; then
+             echo "✅ uv is already installed."
+             echo "Version: $(uv --version)"
             else
-              echo "✅ Docker Compose уже установлен"
+             echo "🔄 uv not found. Installing..."
+             curl -LsSf https://astral.sh/uv/install.sh | sh
+             export PATH="$HOME/.cargo/bin:$PATH"
+             echo "✅ uv installation complete. Version: $(uv --version)"
             fi
-            
-            echo "Версии:"
-            docker --version
-            docker-compose --version
 
       - name: Deploy project directory to Server
-        uses: appleboy/ssh-action@v1.0.3
+        uses: easingthemes/ssh-deploy@main
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            set -e
-            
-            # 1. Проверка и создание директории
-            echo "📁 Проверяем директорию ${{ env.PROJECT_DIR }}"
-            if [ ! -d "${{ env.PROJECT_DIR }}" ]; then
-              echo "Создаем директорию..."
-              sudo mkdir -p "${{ env.PROJECT_DIR }}"
-              sudo chown -R $USER:$USER "${{ env.PROJECT_DIR }}"
-            fi
-            
-            # 2. Копирование проекта
-            echo "🚀 Копируем файлы..."
-            rsync -avz --delete \
-              --exclude '.git/' \
-              --exclude '__pycache__/' \
-              --exclude '*.pyc' \
-              --exclude '.env*' \
-              --exclude 'venv/' \
-              --exclude '.github/' \
-              ./ "${{ env.PROJECT_DIR }}/"
-            
-            echo "✅ Файлы скопированы"
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SOURCE: "dist/"
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
+          TARGET: ${{ env.PROJECT_DIR }}
+          EXCLUDE: "/dist/, /node_modules/"
+          SCRIPT_AFTER: |
+            ls -al
+            echo $RSYNC_STDOUT
 
-      - name: Setup Systemd Services and Start
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Setup Systemd Services
+        uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
@@ -106,10 +83,6 @@ jobs:
           script: |
             set -e
             
-            # 1. Настройка systemd сервисов
-            echo "⚙️ Настраиваем systemd сервисы..."
-            
-            # Основной сервис бота
             sudo tee /etc/systemd/system/${{ env.SERVICE_NAME }}.service > /dev/null << EOF
             [Unit]
             Description=Weather Telegram Bot
@@ -214,31 +187,40 @@ jobs:
             # 3. Загрузка systemd конфигурации
             echo "🔄 Перезагружаем systemd..."
             sudo systemctl daemon-reload
+
+
+      - name: Start Docker Compose
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "🐳 Starting Docker Compose..."
+             cd "${{ env.PROJECT_DIR }}"
             
-            # 4. Запуск docker-compose
-            echo "🐳 Запускаем Docker Compose..."
-            cd "${{ env.PROJECT_DIR }}"
+             if [ -f "docker-compose.yml" ]; then
+               echo "Stop old containers..."
+               sudo docker-compose down --remove-orphans || true
             
-            if [ -f "docker-compose.yml" ]; then
-              # Останавливаем старые контейнеры
-              echo "Останавливаем старые контейнеры..."
-              sudo docker-compose down --remove-orphans || true
+               echo "Starting containers..."
+               sudo docker-compose up -d --build --remove-orphans
             
-              # Строим и запускаем
-              echo "Собираем и запускаем контейнеры..."
-              sudo docker-compose up -d --build --remove-orphans
-            
-              # Проверяем статус
-              sleep 10
-              echo "Статус контейнеров:"
-              sudo docker-compose ps
-            else
-              echo "⚠️ docker-compose.yml не найден"
-            fi
-            
-            # 5. Включение и перезапуск сервисов
+               sleep 10
+               echo "Containers status:"
+               sudo docker-compose ps
+             else
+               echo "⚠️ docker-compose.yml not found"
+             fi
+
+      - name: Auto start services settings
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
             echo "🚀 Настраиваем автозапуск сервисов..."
-            
             # Основной сервис
             sudo systemctl enable ${{ env.SERVICE_NAME }}.service || true
             sudo systemctl restart ${{ env.SERVICE_NAME }}.service || true
@@ -291,7 +273,7 @@ jobs:
           fi
 
       - name: Health Check
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
