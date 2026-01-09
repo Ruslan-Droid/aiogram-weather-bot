@@ -54,7 +54,7 @@ jobs:
               echo "🔄 Installing Docker Compose..."
               curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
               chmod +x /usr/local/bin/docker-compose
-            else:
+            else
               echo "✅ Docker compose is already installed."
             fi
 
@@ -67,8 +67,9 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            if command -v uv &>/dev/null; then
+            if command -V uv &>/dev/null; then
              echo "✅ uv is already installed."
+             uv self update
              echo "Version: $(uv --version)"
             else
              echo "🔄 uv not found. Installing..."
