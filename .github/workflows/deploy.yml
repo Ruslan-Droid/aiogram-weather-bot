@@ -9,7 +9,7 @@ on:
 run-name: "Deploy bot to server"
 
 env:
-  PROJECT_DIR: "/home/root/projects/Weather-telegram-bot"
+  PROJECT_DIR: "/home/${{ secrets.SERVER_USERNAME }}/projects/Weather-telegram-bot"
   SERVICE_NAME: "weather-telegram-bot"
   WORKER_SERVICE_NAME: "weather-telegram-bot-worker"
   SCHEDULER_SERVICE_NAME: "weather-telegram-bot-scheduler"
@@ -24,6 +24,11 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Check project structure
+        run: |
+          echo "📁 current directory:"
+          ls -la
 
       - name: Connect to server and check/install Docker
         uses: appleboy/ssh-action@v1.2.4
@@ -44,6 +49,15 @@ jobs:
               systemctl enable docker
               echo "✅ Docker installation complete. Version: $(docker --version)"
             fi
+            
+            if ! command -v docker-compose &> /dev/null; then
+              echo "🔄 Installing Docker Compose..."
+              curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+            else:
+              echo "✅ Docker compose is already installed."
+            fi
+
 
       - name: Check and install UV on Server
         uses: appleboy/ssh-action@v1.2.4
@@ -53,7 +67,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            if uv --version &>/dev/null; then
+            if command -v uv &>/dev/null; then
              echo "✅ uv is already installed."
              echo "Version: $(uv --version)"
             else
@@ -67,11 +81,14 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         with:
           SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          SOURCE: "dist/"
+          SOURCE: "./"
           REMOTE_HOST: ${{ secrets.SERVER_HOST }}
           REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
           TARGET: ${{ env.PROJECT_DIR }}
           EXCLUDE: "/dist/, /node_modules/"
+          SCRIPT_BEFORE: |
+            mkdir -p ${{ env.PROJECT_DIR }}
+            find ${{ env.PROJECT_DIR }} -maxdepth 1 ! -name ".env*" ! -name ".*" ! -name "${{ env.PROJECT_DIR }}" -exec rm -rf {} + 2>/dev/null || true
           SCRIPT_AFTER: |
             ls -al
             echo $RSYNC_STDOUT
