@@ -21,7 +21,6 @@ async def on_startup(bot: Bot, config: AppConfig) -> None:
 
         await bot.set_webhook(
             url=url,
-            secret_token=config.webhook.WEBHOOK_SECRET,
             drop_pending_updates=False
         )
         logger.info("Successfully set webhook %s", wh_info)
@@ -39,7 +38,6 @@ def create_aiohttp_app(
     webhook_handler = SimpleRequestHandler(
         dispatcher=dp,
         bot=bot,
-        secret_token=config.webhook.WEBHOOK_SECRET,
     )
     webhook_handler.register(app, path=config.webhook.WEBHOOK_PATH)
 
