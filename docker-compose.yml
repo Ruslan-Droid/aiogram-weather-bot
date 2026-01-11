@@ -38,7 +38,7 @@ services:
     volumes:
       - ./.pgadmin_data:/var/lib/pgadmin
     ports:
-      - "${PGADMIN_PORT}:80"
+      - "${PGADMIN_PORT}:81"
     restart: unless-stopped
     depends_on:
       postgres:
