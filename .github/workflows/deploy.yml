@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 run-name: "Deploy bot to server"
-#
+
 env:
   PROJECT_DIR: "/${{ secrets.SERVER_USERNAME }}/projects/weather-telegram-bot"
   SERVICE_NAME: "weather-telegram-bot"
@@ -40,8 +40,9 @@ jobs:
           REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
           TARGET: ${{ env.PROJECT_DIR }}
           EXCLUDE: "/dist/, /node_modules/"
-#          SCRIPT_BEFORE: |
-#            find ${{ env.PROJECT_DIR }} -maxdepth 1 ! -name ".env*" ! -name ".*" ! -name "${{ env.PROJECT_DIR }}" -exec rm -rf {} + 2>/dev/null || true
+          SCRIPT_BEFORE: |
+            mkdir -p ${{ env.PROJECT_DIR }}
+            find ${{ env.PROJECT_DIR }} -maxdepth 1 ! -name ".env*" ! -name ".*" ! -name "${{ env.PROJECT_DIR }}" -exec rm -rf {} + 2>/dev/null || true
           SCRIPT_AFTER: |
             ls -al
             echo $RSYNC_STDOUT
