@@ -9,7 +9,7 @@ on:
 run-name: "Deploy bot to server"
 
 env:
-  PROJECT_DIR: "/home/${{ secrets.SERVER_USERNAME }}/projects/Weather-telegram-bot"
+  PROJECT_DIR: "/${{ secrets.SERVER_USERNAME }}/projects/weather-telegram-bot"
   SERVICE_NAME: "weather-telegram-bot"
   DOCKER_SERVICE_NAME: "weather-telegram-bot-docker"
   WORKER_SERVICE_NAME: "weather-telegram-bot-worker"
