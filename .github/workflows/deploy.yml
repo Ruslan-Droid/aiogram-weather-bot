@@ -41,7 +41,7 @@ jobs:
           TARGET: ${{ env.PROJECT_DIR }}
           EXCLUDE: "/dist/, /node_modules/"
           SCRIPT_BEFORE: |
-            mkdir -p ${{ env.PROJECT_DIR }}
+            sudo mkdir -p ${{ env.PROJECT_DIR }}
           SCRIPT_AFTER: |
             ls -al
             echo $RSYNC_STDOUT
