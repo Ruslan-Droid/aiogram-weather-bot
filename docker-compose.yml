@@ -2,6 +2,13 @@ services:
   postgres:
     image: postgres:18-alpine
     container_name: postgres_container
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 512M
     env_file:
       - .env
     environment:
@@ -56,6 +63,13 @@ services:
   redis:
     image: redis:8.2.3-alpine
     container_name: redis_container
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+        reservations:
+          memory: 512M
     env_file:
       - .env
     volumes:
@@ -82,6 +96,13 @@ services:
   nats:
     image: nats:latest
     container_name: nats_container
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 512M
+        reservations:
+          memory: 512M
     entrypoint: /nats-server
     command: "-c /config/server.conf"
     ports:
