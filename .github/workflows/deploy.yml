@@ -64,10 +64,12 @@ jobs:
             ls -al
             echo $RSYNC_STDOUT
             
+            sudo systemctl restart ${{ env.DOCKER_SERVICE_NAME }}
             sudo systemctl restart ${{ env.SERVICE_NAME }}
             sudo systemctl restart ${{ env.WORKER_SERVICE_NAME }}
             sudo systemctl restart ${{ env.SCHEDULER_SERVICE_NAME }}
             
+            sudo systemctl status ${{ env.DOCKER_SERVICE_NAME }}
             sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
             sudo systemctl status ${{ env.WORKER_SERVICE_NAME }} --no-pager
             sudo systemctl status ${{ env.SCHEDULER_SERVICE_NAME }} --no-pager
