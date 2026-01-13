@@ -3,8 +3,16 @@ name: Deploy Weather Bot to Server
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
+      - '**.md'
   pull_request:
     branches: [ "master" ]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
 
 run-name: "Deploy bot to server"
 
@@ -25,6 +33,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          clean: true
 
       - name: Check project structure
         run: |
@@ -39,10 +48,27 @@ jobs:
           REMOTE_HOST: ${{ secrets.SERVER_HOST }}
           REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
           TARGET: ${{ env.PROJECT_DIR }}
+          ARGS: >-
+            -rlgoDzvi --delete
+            --exclude=.env
+            --exclude=.nui_data
+            --exclude=.pgadmin_data
+            --exclude=.postgres_data
+            --exclude=.redis_data
+            --exclude=.venv
+            --exclude=.nats_data
           EXCLUDE: "/dist/, /node_modules/"
           SCRIPT_BEFORE: |
             sudo mkdir -p ${{ env.PROJECT_DIR }}
           SCRIPT_AFTER: |
             ls -al
             echo $RSYNC_STDOUT
-
+            
+            sudo systemctl restart ${{ env.SERVICE_NAME }}
+            sudo systemctl restart ${{ env.WORKER_SERVICE_NAME }}
+            sudo systemctl restart ${{ env.SCHEDULER_SERVICE_NAME }}
+            
+            sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
+            sudo systemctl status ${{ env.WORKER_SERVICE_NAME }} --no-pager
+            sudo systemctl status ${{ env.SCHEDULER_SERVICE_NAME }} --no-pager
+            
