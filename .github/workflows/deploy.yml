@@ -7,8 +7,6 @@ on:
       - 'README.md'
       - 'docs/**'
       - '**.md'
-  pull_request:
-    branches: [ "master" ]
 
 concurrency:
   group: production-deploy
