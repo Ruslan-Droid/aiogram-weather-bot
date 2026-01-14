@@ -14,7 +14,7 @@ async def on_startup(bot: Bot, dp, config: AppConfig) -> None:
     wh_info = await bot.get_webhook_info()
     url = f"{config.webhook.WEBHOOK_BASE_URL}{config.webhook.WEBHOOK_PATH}"
 
-    if wh_info.url != url:
+    if wh_info.url: #!= url:
         logger.info("Webhook config changed. Reconfiguring from %s to %s", wh_info.url, url)
         if wh_info.url:
             await bot.delete_webhook(drop_pending_updates=False)
