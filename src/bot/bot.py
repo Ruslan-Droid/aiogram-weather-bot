@@ -178,7 +178,7 @@ async def main():
     runner = None
 
     try:
-        await on_startup(bot=bot, config=config)
+        await on_startup(bot=bot, config=config, dp=dp)
         delayed_consumer_task = asyncio.create_task(
             start_delayed_consumer(
                 nc=nc,

@@ -7,7 +7,7 @@ from config.config import AppConfig
 logger = logging.getLogger(__name__)
 
 
-async def on_startup(bot: Bot, config: AppConfig) -> None:
+async def on_startup(bot: Bot, dp, config: AppConfig) -> None:
     me = await bot.get_me()
     logger.warning("starting bot %s", me.username)
 
@@ -21,6 +21,7 @@ async def on_startup(bot: Bot, config: AppConfig) -> None:
 
         await bot.set_webhook(
             url=url,
+            allowed_updates=dp.resolve_used_update_types(),
             drop_pending_updates=False
         )
         logger.info("Successfully set webhook %s", wh_info)
