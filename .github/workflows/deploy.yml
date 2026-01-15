@@ -71,4 +71,3 @@ jobs:
             sudo systemctl status ${{ env.SERVICE_NAME }} --no-pager
             sudo systemctl status ${{ env.WORKER_SERVICE_NAME }} --no-pager
             sudo systemctl status ${{ env.SCHEDULER_SERVICE_NAME }} --no-pager
-            

@@ -4,6 +4,7 @@ from aiogram import Bot
 from fluentogram import TranslatorHub, TranslatorRunner
 from sqlalchemy.ext.asyncio import AsyncSession
 from taskiq import TaskiqDepends, TaskiqState, ScheduledTask
+from taskiq.scheduler.scheduled_task import CronSpec
 from taskiq_redis import RedisScheduleSource
 
 from src.services.scheduler.taskiq_broker import broker, config
@@ -55,8 +56,7 @@ async def update_send_daily_weather_task(
 
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        cron=f"{minutes} {hours} * * *",
-        cron_offset=tz_region,
+        cron=CronSpec(minutes=minutes, hours=hours, offset=tz_region),
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,
@@ -93,8 +93,7 @@ async def update_send_daily_weather_task_for_group(
 
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        cron=f"{minutes} {hours} * * *",
-        cron_offset=tz_region,
+        cron=CronSpec(minutes=minutes, hours=hours, offset=tz_region),
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,

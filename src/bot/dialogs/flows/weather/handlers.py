@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, ManagedCheckbox, Select, ManagedRadio
 from aiogram_dialog.api.protocols.manager import DialogManager
 from aiogram_dialog.api.entities.modes import ShowMode
+from taskiq.scheduler.scheduled_task import CronSpec
 
 from src.bot.dialogs.flows.weather.states import WeatherSG
 from src.bot.dialogs.flows.language_settings.states import SettingsSG
@@ -137,8 +138,7 @@ async def weather_notification_clicked(
 
         task: ScheduledTask = await send_daily_weather.schedule_by_cron(
             source=redis_source,
-            cron=f"{minutes} {hours} * * *",
-            cron_offset=user.tz_region,
+            cron=CronSpec(minutes=minutes, hours=hours, offset=user.tz_region),
             location=location,
             language=user.language_code,
             telegram_chat_id=callback.message.chat.id,
@@ -808,8 +808,7 @@ async def group_task_toggle_notifications_on_click(
 
             scheduled_task = await send_daily_weather.schedule_by_cron(
                 source=redis_source,
-                cron=f"{minutes} {hours} * * *",
-                cron_offset=group_timezone,
+                cron=CronSpec(minutes=minutes, hours=hours, offset=group_timezone),
                 location=location,
                 language=group_language,
                 telegram_chat_id=group_telegram_id,
