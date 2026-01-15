@@ -132,11 +132,13 @@ async def weather_notification_clicked(
     if not user_notification_settings.notifications_enabled:
 
         location = (user.latitude, user.longitude) if user.city is None else user.city
+        minutes = user.daily_task.notification_time.split(":")[1]
+        hours = user.daily_task.notification_time.split(":")[0]
 
         task: ScheduledTask = await send_daily_weather.schedule_by_cron(
             source=redis_source,
-            # cron=f"{user.user_schedule_task.notification_time.split(":")[0]} {user.user_schedule_task.notification_time.split(":")[1]} * * *",
-            cron="*/1 * * * *",
+            cron=f"{minutes} {hours} * * *",
+            cron_offset=user.tz_region,
             location=location,
             language=user.language_code,
             telegram_chat_id=callback.message.chat.id,
@@ -801,11 +803,13 @@ async def group_task_toggle_notifications_on_click(
         location = task.city if task.city else (task.latitude, task.longitude)
 
         if location and location != (None, None):
+            minutes = task.notification_time.split(':')[1]
+            hours = task.notification_time.split(':')[0]
+
             scheduled_task = await send_daily_weather.schedule_by_cron(
                 source=redis_source,
-                # cron=f"{task.notification_time.split(':')[1]} {task.notification_time.split(':')[0]} * * *",
-                # cron_offset=group_timezone,
-                cron="*/2 * * * *",
+                cron=f"{minutes} {hours} * * *",
+                cron_offset=group_timezone,
                 location=location,
                 language=group_language,
                 telegram_chat_id=group_telegram_id,

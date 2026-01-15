@@ -65,6 +65,7 @@ async def update_user_lang(
         await update_send_daily_weather_task(
             source=redis_source,
             time=task_settings.notification_time,
+            tz_region=user_row.tz_region,
             location=location,
             language=user_row.language_code,
             telegram_chat_id=user_row.telegram_id,

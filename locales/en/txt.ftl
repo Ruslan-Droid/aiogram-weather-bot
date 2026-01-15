@@ -60,7 +60,7 @@ start-command-description = Restart the bot
 lang-command-description = Configure the interface language
 help-command-description = View the help for the bot
 
-help-commad =
+help-command =
     The following commands are available in the bot:
 
     /start - restart the bot

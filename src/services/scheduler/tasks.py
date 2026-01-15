@@ -50,11 +50,13 @@ async def update_send_daily_weather_task(
     await source.delete_schedule(taskiq_task_id)
     logger.debug("Schedule task %s from taskiq successful deleted", taskiq_task_id)
     # create new task
+    minutes = time.split(":")[1]
+    hours = time.split(":")[0]
+
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        cron=f"{time.split(":")[1]} {time.split(":")[0]} * * *",
+        cron=f"{minutes} {hours} * * *",
         cron_offset=tz_region,
-        # cron="*/2 * * * *",
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,
@@ -86,11 +88,13 @@ async def update_send_daily_weather_task_for_group(
     await source.delete_schedule(taskiq_task_id)
     logger.debug("Schedule task %s from taskiq successful deleted", taskiq_task_id)
     # create new task
+    minutes = time.split(":")[1]
+    hours = time.split(":")[0]
+
     task: ScheduledTask = await send_daily_weather.schedule_by_cron(
         source=source,
-        cron=f"{time.split(":")[1]} {time.split(":")[0]} * * *",
+        cron=f"{minutes} {hours} * * *",
         cron_offset=tz_region,
-        # cron="*/2 * * * *",
         location=location,
         language=language,
         telegram_chat_id=telegram_chat_id,
