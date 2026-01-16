@@ -152,63 +152,42 @@ This is a weather bot written in python using the `aiogram` framework
 1. Clone the repository to your local machine via HTTPS:
 
 ```bash
-git clone https://github.com/kmsint/aiogram_bot_template.git
+git clone https://github.com/kmsint/aiogram_bot_template.git](https://github.com/Ruslan-Droid/aiogram-weather-bot.git
 ```
 
 or via SSH:
 
 ```bash
-git clone git@github.com:kmsint/aiogram_bot_template.git
+git@github.com:Ruslan-Droid/aiogram-weather-bot.git
 ```
 
-2. Create a `docker-compose.yml` file in the root of the project and copy the code from the `docker-compose.example`
-   file into it.
-
-3. Create a `.env` file in the root of the project and copy the code from the `.env.example` file into it. Replace the
+2. Create a `.env` file in the root of the project and copy the code from the `.env.example` file into it. Replace the
    required secrets (BOT_TOKEN, ADMINS_CHAT, etc).
 
-4. Run `docker-compose.yml` with `docker compose up` command. You need docker and docker-compose installed on your local
+3. Run `docker-compose.yml` with `docker compose up` command. You need docker and docker-compose installed on your local
    machine.
 
-5. Create a virtual environment in the project root and activate it.
+4. Create a virtual environment in the project root and activate it.
 
-6. Install the required libraries in the virtual environment. With `pip`:
-
-```bash
-pip install .
-```
-
-or if you use `poetry`:
+5. Install the required libraries in the virtual environment. With `uv`:
 
 ```bash
-poetry install --no-root
+uv sync
 ```
 
-7. Write SQL code in the `upgrade` and `downgrade` functions to create a database schema. See example in file
-   `alembic/versions/1541bb8a3f26_.py`.
-
-8. If required, create additional empty migrations with the command:
-
-```bash
-alembic revision
-```
-
-and fill them with SQL code.
-
-9. Apply database migrations using the command:
+6. Apply database migrations using the command:
 
 ```bash
 alembic upgrade head
 ```
 
-10. Run `create_stream.py` to create NATS stream for delayed messages service:
+7. Run `create_stream.py` to create NATS stream for delayed messages service:
 
 ```bash
 python3 -m nats_broker.migrations.create_stream
 ```
 
-11. If you want to use the Taskiq broker for background tasks as well as the Taskiq scheduler, add your tasks to the
-    `tasks.py` module and start the worker first:
+8. Start the taskiq worker first:
 
 ```bash
 taskiq worker src.services.scheduler.taskiq_broker:broker -fsd
@@ -220,6 +199,4 @@ and then the scheduler:
 taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 ```
 
-12. Run `main.py` to check the functionality of the template.
-
-13. You can fill the template with the functionality you need.
+9. Run `main.py` to check the functionality of the template.
