@@ -145,12 +145,12 @@ This is a weather bot written in python using the `aiogram` framework
 ├── README.md
 └── uv.lock
 ```
-## What can this bot do 
+## What can this bot do?
 1. Send current weather.
 2. Send today forecast
 3. Enable/Disable weather daily forecast
 4. General bot settings:
-   - Language settins (Russian, English)
+   - Language settings (Russian, English)
    - Time settings for daily forecast
    - Change coords
    - Change city
