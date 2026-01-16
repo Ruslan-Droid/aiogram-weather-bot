@@ -4,8 +4,6 @@
 
 https://t.me/KLG_Weather_Bot
 
-@KLG_Weather_Bot
-
 This is a weather bot written in python using the `aiogram` framework
 
 ## About the bot
