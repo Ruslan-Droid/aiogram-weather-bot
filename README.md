@@ -169,7 +169,7 @@ This is a weather bot written in python using the `aiogram` framework
 1. Clone the repository to your local machine via HTTPS:
 
 ```bash
-git clone https://github.com/kmsint/aiogram_bot_template.git](https://github.com/Ruslan-Droid/aiogram-weather-bot.git
+git clone https://github.com/Ruslan-Droid/aiogram-weather-bot.git
 ```
 
 or via SSH:
