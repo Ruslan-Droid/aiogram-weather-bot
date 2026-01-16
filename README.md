@@ -174,7 +174,7 @@ This is a weather bot written in python using the `aiogram` framework
      - Change city
      - Enable/Disable button
 
-    <img alt="group settings.gif" height="480" src="assets/group%20settings.gif" width="216"/>
+   <img alt="group settings.gif" height="480" src="assets/group%20settings.gif" width="216"/>
 
 ## Installation
 
