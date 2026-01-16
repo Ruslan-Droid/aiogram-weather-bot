@@ -158,7 +158,7 @@ This is a weather bot written in python using the `aiogram` framework
 6. Bot settings in group:
    - Language settings for groups messages (Russian, English)
    - Timezone settings
-   - 2 Daily forcest tasks with next settings:
+   - 2 Daily forecast tasks with next settings:
      - Time settings for daily forecast
      - Change coords
      - Change city
