@@ -147,14 +147,24 @@ This is a weather bot written in python using the `aiogram` framework
 ```
 ## What can this bot do?
 1. Send current weather.
+
+   <img alt="current weather.gif" height="480" src="assets/current%20weather.gif" width="216"/>
 2. Send today forecast
+
+   <img alt="today forecast.gif" height="480" src="assets/today%20forecast.gif" width="216"/>
 3. Enable/Disable weather daily forecast
+
+   <img alt="enable notification.gif" height="480" src="assets/enable%20notification.gif" width="216"/>
 4. General bot settings:
    - Language settings (Russian, English)
    - Time settings for daily forecast
    - Change coords
    - Change city
+
+    <img alt="General settings.gif" height="480" src="assets/General%20settings.gif" width="216"/>
 5. Button to add bot to a group as admin
+
+    <img alt="Add in group button.png" src="assets/Add%20in%20group%20button.png"/>
 6. Bot settings in group:
    - Language settings for groups messages (Russian, English)
    - Timezone settings
@@ -163,6 +173,8 @@ This is a weather bot written in python using the `aiogram` framework
      - Change coords
      - Change city
      - Enable/Disable button
+
+    <img alt="group settings.gif" height="480" src="assets/group%20settings.gif" width="216"/>
 
 ## Installation
 
