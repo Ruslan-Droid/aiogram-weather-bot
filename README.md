@@ -1,6 +1,6 @@
 # Aiogram 3 Weather Bot
 <img src="https://github.com/Ruslan-Droid/aiogram-weather-bot/actions/workflows/deploy.yml/badge.svg?branch=master" />
-![GitHub Release](https://img.shields.io/github/v/release/Ruslan-Droidaiogram-weather-bot) 
+<img src=https://img.shields.io/github/v/release/Ruslan-Droidaiogram-weather-bot/>
 
 https://t.me/KLG_Weather_Bot
 
