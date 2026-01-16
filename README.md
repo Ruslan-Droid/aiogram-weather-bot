@@ -2,6 +2,7 @@
 <img src="https://github.com/Ruslan-Droid/aiogram-weather-bot/actions/workflows/deploy.yml/badge.svg?branch=master" /> <img src="https://img.shields.io/github/v/release/Ruslan-Droid/aiogram-weather-bot?sort=semver&label=stable" />
 
 <img alt="main_logo.jpg" height="180" src="assets/main_logo.jpg" width="320"/>
+
 https://t.me/KLG_Weather_Bot
 
 This is a weather bot written in python using the `aiogram` framework
