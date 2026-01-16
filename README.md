@@ -173,8 +173,8 @@ This is a weather bot written in python using the `aiogram` framework
      - Change coords
      - Change city
      - Enable/Disable button
-     
-       <img alt="group_settings.gif" height="480" src="assets/group_settings.gif" width="216"/>
+
+    <img alt="group_settings.gif" height="480" src="assets/group_settings.gif" width="216"/>
 
 ## Installation
 
