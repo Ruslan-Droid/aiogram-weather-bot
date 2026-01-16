@@ -145,6 +145,24 @@ This is a weather bot written in python using the `aiogram` framework
 ├── README.md
 └── uv.lock
 ```
+## What can this bot do 
+1. Send current weather.
+2. Send today forecast
+3. Enable/Disable weather daily forecast
+4. General bot settings:
+   - Language settins (Russian, English)
+   - Time settings for daily forecast
+   - Change coords
+   - Change city
+5. Button to add bot to a group as admin
+6. Bot settings in group:
+   - Language settings for groups messages (Russian, English)
+   - Timezone settings
+   - 2 Daily forcest tasks with next settings:
+     - Time settings for daily forecast
+     - Change coords
+     - Change city
+     - Enable/Disable button
 
 ## Installation
 
@@ -198,4 +216,4 @@ and then the scheduler:
 taskiq scheduler src.services.scheduler.taskiq_broker:scheduler
 ```
 
-9. Run `main.py` to check the functionality of the template.
+9. Run `main.py` to start bot.
