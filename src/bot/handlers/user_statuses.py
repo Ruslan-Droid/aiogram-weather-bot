@@ -27,7 +27,7 @@ async def user_leave_handler(
         logger.info('User leave from bot %s', user_row.telegram_id)
     else:
         user_rep: UserRepository = UserRepository(session)
-        user_row: UserModel = await user_rep.create_new_user(
+        user_row: UserModel = await user_rep.create_or_update_user(
             telegram_id=event.from_user.id,
             username=event.from_user.username,
             first_name=event.from_user.first_name,
