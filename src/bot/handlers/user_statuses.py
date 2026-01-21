@@ -21,8 +21,6 @@ async def user_leave_handler(
         session: AsyncSession,
         user_row: UserModel | None,
 ) -> None:
-    print("Мы в user_statuses leave", event)
-
     if user_row:
         user_repo: UserRepository = UserRepository(session)
         await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=False)
@@ -46,8 +44,6 @@ async def user_join_handler(
         session: AsyncSession,
         user_row: UserModel | None,
 ) -> None:
-    print("Мы в user_statuses join", event)
-
     if user_row:
         user_repo: UserRepository = UserRepository(session)
         await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=True)
