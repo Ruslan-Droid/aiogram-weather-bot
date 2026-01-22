@@ -23,8 +23,8 @@ async def user_leave_handler(
 ) -> None:
     if user_row:
         user_repo: UserRepository = UserRepository(session)
-        await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=False)
-        logger.info('User leave from bot %s', user_row.telegram_id)
+        await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=True)
+        logger.info('User joined bot %s', user_row.telegram_id)
     else:
         user_rep: UserRepository = UserRepository(session)
         user_row: UserModel = await user_rep.create_or_update_user(
@@ -33,7 +33,7 @@ async def user_leave_handler(
             first_name=event.from_user.first_name,
             last_name=event.from_user.last_name,
             language_code=event.from_user.language_code,
-            is_active=False,
+            is_active=True,
         )
         logger.info('User leave from bot %s', user_row.telegram_id)
 
@@ -46,7 +46,7 @@ async def user_join_handler(
 ) -> None:
     if user_row:
         user_repo: UserRepository = UserRepository(session)
-        await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=True)
+        await user_repo.update_activity_status(telegram_id=user_row.telegram_id, status=False)
         logger.info('User join in bot %s', user_row.telegram_id)
     else:
         user_rep: UserRepository = UserRepository(session)
@@ -58,4 +58,4 @@ async def user_join_handler(
             language_code=event.from_user.language_code,
             is_active=False,
         )
-        logger.info('User join bot telegram_id: %s', user_row.telegram_id)
+        logger.info('User leaved from bot telegram_id: %s', user_row.telegram_id)
