@@ -81,8 +81,8 @@ class UserRepository:
             if not daily_task:
                 daily_task = DailyUserTaskModel(user_id=user.id)
                 self.session.add(daily_task)
-                await self.session.commit()
-
+            
+            await self.session.commit()
             logger.info("Created/Updated user with telegram id: %s", telegram_id)
             return user
 
