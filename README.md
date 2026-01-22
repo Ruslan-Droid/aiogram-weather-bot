@@ -66,7 +66,7 @@ This is a weather bot written in python using the `aiogram` framework
 ├── 📁 .github
 │   └── 📁 workflows
 │       ├── deploy.yml
-│       └── rollback.yml
+│       └── release.yml
 ├── 📁 config
 │   ├── config.py
 │   └── settings.toml
